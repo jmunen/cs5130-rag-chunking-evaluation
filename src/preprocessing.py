@@ -1,24 +1,26 @@
 from pathlib import Path
 from bs4 import BeautifulSoup
 
-input_path = Path("data/raw/path_params.html")
-output_path = Path("data/processed/path_params.html")
+RAW_DIR = Path("data/raw")
+PROCESSED_DIR = Path("data/processed")
 
-html = input_path.read_text(encoding="utf-8")
+for input_path in RAW_DIR.glob("*.html"):
+    html = input_path.read_text(encoding="utf-8")
 
-soup = BeautifulSoup(html, "html.parser")
+    soup = BeautifulSoup(html, "html.parser")
+    article = soup.find("article")
 
-article = soup.find("article")
+    if article is None:
+        print(f"Skipped {input_path.name}: no article found")
+        continue
 
-if article is None:
-    raise ValueError("Could not find article content")
+    for link in article.select("a.headerlink"):
+        link.decompose()
 
-for link in article.select("a.headerlink"):
-    link.decompose()
+    for image in article.find_all("img"):
+        image.decompose()
 
-for image in article.find_all("img"):
-    image.decompose()
+    output_path = PROCESSED_DIR / input_path.name
+    output_path.write_text(str(article), encoding="utf-8")
 
-output_path.write_text(str(article), encoding="utf-8")
-
-print(f"Saved processed document to {output_path}")
+    print(f"Processed {input_path.name}")

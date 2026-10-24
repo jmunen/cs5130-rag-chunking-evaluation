@@ -1,0 +1,258 @@
+<article class="md-content__inner md-typeset">
+<h1 id="security-first-steps">Security - First Steps</h1>
+<p>Let's imagine that you have your <strong>backend</strong> API in some domain.</p>
+<p>And you have a <strong>frontend</strong> in another domain or in a different path of the same domain (or in a mobile application).</p>
+<p>And you want to have a way for the frontend to authenticate with the backend, using a <strong>username</strong> and <strong>password</strong>.</p>
+<p>We can use <strong>OAuth2</strong> to build that with <strong>FastAPI</strong>.</p>
+<p>But let's save you the time of reading the full long specification just to find those little pieces of information you need.</p>
+<p>Let's use the tools provided by <strong>FastAPI</strong> to handle security.</p>
+<h2 id="how-it-looks">How it looks</h2>
+<p>Let's first just use the code and see how it works, and then we'll come back to understand what's happening.</p>
+<h2 id="create-main-py">Create <code>main.py</code></h2>
+<p>Copy the example in a file <code>main.py</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio"/><div class="tabbed-labels"><label for="__tabbed_1_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>
+</span><span id="__span-0-2">
+</span><span id="__span-0-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-0-4"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.security</span><span class="w"> </span><span class="kn">import</span> <span class="n">OAuth2PasswordBearer</span>
+</span><span id="__span-0-5">
+</span><span id="__span-0-6"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-0-7">
+</span><span id="__span-0-8"><span class="n">oauth2_scheme</span> <span class="o">=</span> <span class="n">OAuth2PasswordBearer</span><span class="p">(</span><span class="n">tokenUrl</span><span class="o">=</span><span class="s2">"token"</span><span class="p">)</span>
+</span><span id="__span-0-9">
+</span><span id="__span-0-10">
+</span><span id="__span-0-11"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-0-12"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">oauth2_scheme</span><span class="p">)]):</span>
+</span><span id="__span-0-13">    <span class="k">return</span> <span class="p">{</span><span class="s2">"token"</span><span class="p">:</span> <span class="n">token</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<details>
+<summary>🤓 Other versions and variants</summary>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio"/><div class="tabbed-labels"><label for="__tabbed_2_1">Python 3.10+ - non-Annotated</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Prefer to use the <code>Annotated</code> version if possible.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-1-2"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.security</span><span class="w"> </span><span class="kn">import</span> <span class="n">OAuth2PasswordBearer</span>
+</span><span id="__span-1-3">
+</span><span id="__span-1-4"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-1-5">
+</span><span id="__span-1-6"><span class="n">oauth2_scheme</span> <span class="o">=</span> <span class="n">OAuth2PasswordBearer</span><span class="p">(</span><span class="n">tokenUrl</span><span class="o">=</span><span class="s2">"token"</span><span class="p">)</span>
+</span><span id="__span-1-7">
+</span><span id="__span-1-8">
+</span><span id="__span-1-9"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-1-10"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">oauth2_scheme</span><span class="p">)):</span>
+</span><span id="__span-1-11">    <span class="k">return</span> <span class="p">{</span><span class="s2">"token"</span><span class="p">:</span> <span class="n">token</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+</details>
+<h2 id="run-it">Run it</h2>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The <a href="https://github.com/Kludex/python-multipart"><code>python-multipart</code></a> package is automatically installed with <strong>FastAPI</strong> when you run the <code>uv add "fastapi[standard]"</code> command.</p>
+<p>However, if you use the <code>uv add fastapi</code> command, the <code>python-multipart</code> package is not included by default.</p>
+<p>To install it manually, add it to your project with:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><span class="gp">$ </span>uv<span class="w"> </span>add<span class="w"> </span>python-multipart
+</span></code></pre></div>
+<p>This is because <strong>OAuth2</strong> uses "form data" for sending the <code>username</code> and <code>password</code>.</p>
+</div>
+<p>Run the example with:</p>
+<div class="termy">
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><span class="gp">$ </span>uv<span class="w"> </span>run<span class="w"> </span>fastapi<span class="w"> </span>dev
+</span><span id="__span-3-2">
+</span><span id="__span-3-3"><span class="go">&lt;span style="color: green;"&gt;INFO&lt;/span&gt;:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)</span>
+</span></code></pre></div>
+</div>
+<h2 id="check-it">Check it</h2>
+<p>Go to the interactive docs at: <a href="http://127.0.0.1:8000/docs">http://127.0.0.1:8000/docs</a>.</p>
+<p>You will see something like this:</p>
+<p></p>
+<div class="admonition tip">
+<p class="admonition-title">Authorize button!</p>
+<p>You already have a shiny new "Authorize" button.</p>
+<p>And your <em>path operation</em> has a little lock in the top-right corner that you can click.</p>
+</div>
+<p>And if you click it, you have a little authorization form to type a <code>username</code> and <code>password</code> (and other optional fields):</p>
+<p></p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>It doesn't matter what you type in the form, it won't work yet. But we'll get there.</p>
+</div>
+<p>This is of course not the frontend for the final users, but it's a great automatic tool to document interactively all your API.</p>
+<p>It can be used by the frontend team (that can also be yourself).</p>
+<p>It can be used by third party applications and systems.</p>
+<p>And it can also be used by yourself, to debug, check and test the same application.</p>
+<h2 id="the-password-flow">The <code>password</code> flow</h2>
+<p>Now let's go back a bit and understand what all that is.</p>
+<p>The <code>password</code> "flow" is one of the ways ("flows") defined in OAuth2, to handle security and authentication.</p>
+<p>OAuth2 was designed so that the backend or API could be independent of the server that authenticates the user.</p>
+<p>But in this case, the same <strong>FastAPI</strong> application will handle the API and the authentication.</p>
+<p>So, let's review it from that simplified point of view:</p>
+<ul>
+<li>The user types the <code>username</code> and <code>password</code> in the frontend, and hits <code>Enter</code>.</li>
+<li>The frontend (running in the user's browser) sends that <code>username</code> and <code>password</code> to a specific URL in our API (declared with <code>tokenUrl="token"</code>).</li>
+<li>The API checks that <code>username</code> and <code>password</code>, and responds with a "token" (we haven't implemented any of this yet).<ul>
+<li>A "token" is just a string with some content that we can use later to verify this user.</li>
+<li>Normally, a token is set to expire after some time.<ul>
+<li>So, the user will have to log in again at some point later.</li>
+<li>And if the token is stolen, the risk is less. It is not like a permanent key that will work forever (in most of the cases).</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>The frontend stores that token temporarily somewhere.</li>
+<li>The user clicks in the frontend to go to another section of the frontend web app.</li>
+<li>The frontend needs to fetch some more data from the API.<ul>
+<li>But it needs authentication for that specific endpoint.</li>
+<li>So, to authenticate with our API, it sends a header <code>Authorization</code> with a value of <code>Bearer</code> plus the token.</li>
+<li>If the token contains <code>foobar</code>, the content of the <code>Authorization</code> header would be: <code>Bearer foobar</code>.</li>
+</ul>
+</li>
+</ul>
+<h2 id="fastapis-oauth2passwordbearer"><strong>FastAPI</strong>'s <code>OAuth2PasswordBearer</code></h2>
+<p><strong>FastAPI</strong> provides several tools, at different levels of abstraction, to implement these security features.</p>
+<p>In this example we are going to use <strong>OAuth2</strong>, with the <strong>Password</strong> flow, using a <strong>Bearer</strong> token. We do that using the <code>OAuth2PasswordBearer</code> class.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>A "bearer" token is not the only option.</p>
+<p>But it's the best one for our use case.</p>
+<p>And it might be the best for most use cases, unless you are an OAuth2 expert and know exactly why there's another option that better suits your needs.</p>
+<p>In that case, <strong>FastAPI</strong> also provides you with the tools to build it.</p>
+</div>
+<p>When we create an instance of the <code>OAuth2PasswordBearer</code> class we pass in the <code>tokenUrl</code> parameter. This parameter contains the URL that the client (the frontend running in the user's browser) will use to send the <code>username</code> and <code>password</code> in order to get a token.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio"/><div class="tabbed-labels"><label for="__tabbed_3_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>
+</span><span id="__span-4-2">
+</span><span id="__span-4-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-4-4"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.security</span><span class="w"> </span><span class="kn">import</span> <span class="n">OAuth2PasswordBearer</span>
+</span><span id="__span-4-5">
+</span><span id="__span-4-6"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-4-7">
+</span><span id="__span-4-8"><span class="hll"><span class="n">oauth2_scheme</span> <span class="o">=</span> <span class="n">OAuth2PasswordBearer</span><span class="p">(</span><span class="n">tokenUrl</span><span class="o">=</span><span class="s2">"token"</span><span class="p">)</span>
+</span></span><span id="__span-4-9">
+</span><span id="__span-4-10">
+</span><span id="__span-4-11"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-4-12"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">oauth2_scheme</span><span class="p">)]):</span>
+</span><span id="__span-4-13">    <span class="k">return</span> <span class="p">{</span><span class="s2">"token"</span><span class="p">:</span> <span class="n">token</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<details>
+<summary>🤓 Other versions and variants</summary>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio"/><div class="tabbed-labels"><label for="__tabbed_4_1">Python 3.10+ - non-Annotated</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Prefer to use the <code>Annotated</code> version if possible.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-5-2"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.security</span><span class="w"> </span><span class="kn">import</span> <span class="n">OAuth2PasswordBearer</span>
+</span><span id="__span-5-3">
+</span><span id="__span-5-4"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-5-5">
+</span><span id="__span-5-6"><span class="n">oauth2_scheme</span> <span class="o">=</span> <span class="n">OAuth2PasswordBearer</span><span class="p">(</span><span class="n">tokenUrl</span><span class="o">=</span><span class="s2">"token"</span><span class="p">)</span>
+</span><span id="__span-5-7">
+</span><span id="__span-5-8">
+</span><span id="__span-5-9"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-5-10"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">oauth2_scheme</span><span class="p">)):</span>
+</span><span id="__span-5-11">    <span class="k">return</span> <span class="p">{</span><span class="s2">"token"</span><span class="p">:</span> <span class="n">token</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+</details>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Here <code>tokenUrl="token"</code> refers to a relative URL <code>token</code> that we haven't created yet. As it's a relative URL, it's equivalent to <code>./token</code>.</p>
+<p>Because we are using a relative URL, if your API was located at <code>https://example.com/</code>, then it would refer to <code>https://example.com/token</code>. But if your API was located at <code>https://example.com/api/v1/</code>, then it would refer to <code>https://example.com/api/v1/token</code>.</p>
+<p>Using a relative URL is important to make sure your application keeps working even in an advanced use case like <a href="../../../advanced/behind-a-proxy/">Behind a Proxy</a>.</p>
+</div>
+<p>This parameter doesn't create that endpoint / <em>path operation</em>, but declares that the URL <code>/token</code> will be the one that the client should use to get the token. That information is used in OpenAPI, and then in the interactive API documentation systems.</p>
+<p>We will soon also create the actual path operation.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you are a very strict "Pythonista" you might dislike the style of the parameter name <code>tokenUrl</code> instead of <code>token_url</code>.</p>
+<p>That's because it is using the same name as in the OpenAPI spec. So that if you need to investigate more about any of these security schemes you can just copy and paste it to find more information about it.</p>
+</div>
+<p>The <code>oauth2_scheme</code> variable is an instance of <code>OAuth2PasswordBearer</code>, but it is also a "callable".</p>
+<p>It could be called as:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><span class="n">oauth2_scheme</span><span class="p">(</span><span class="n">some</span><span class="p">,</span> <span class="n">parameters</span><span class="p">)</span>
+</span></code></pre></div>
+<p>So, it can be used with <code>Depends</code>.</p>
+<h3 id="use-it">Use it</h3>
+<p>Now you can pass that <code>oauth2_scheme</code> in a dependency with <code>Depends</code>.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:1"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio"/><div class="tabbed-labels"><label for="__tabbed_5_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>
+</span><span id="__span-7-2">
+</span><span id="__span-7-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-7-4"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.security</span><span class="w"> </span><span class="kn">import</span> <span class="n">OAuth2PasswordBearer</span>
+</span><span id="__span-7-5">
+</span><span id="__span-7-6"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-7-7">
+</span><span id="__span-7-8"><span class="n">oauth2_scheme</span> <span class="o">=</span> <span class="n">OAuth2PasswordBearer</span><span class="p">(</span><span class="n">tokenUrl</span><span class="o">=</span><span class="s2">"token"</span><span class="p">)</span>
+</span><span id="__span-7-9">
+</span><span id="__span-7-10">
+</span><span id="__span-7-11"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-7-12"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">oauth2_scheme</span><span class="p">)]):</span>
+</span></span><span id="__span-7-13">    <span class="k">return</span> <span class="p">{</span><span class="s2">"token"</span><span class="p">:</span> <span class="n">token</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<details>
+<summary>🤓 Other versions and variants</summary>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:1"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio"/><div class="tabbed-labels"><label for="__tabbed_6_1">Python 3.10+ - non-Annotated</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Prefer to use the <code>Annotated</code> version if possible.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-8-2"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.security</span><span class="w"> </span><span class="kn">import</span> <span class="n">OAuth2PasswordBearer</span>
+</span><span id="__span-8-3">
+</span><span id="__span-8-4"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-8-5">
+</span><span id="__span-8-6"><span class="n">oauth2_scheme</span> <span class="o">=</span> <span class="n">OAuth2PasswordBearer</span><span class="p">(</span><span class="n">tokenUrl</span><span class="o">=</span><span class="s2">"token"</span><span class="p">)</span>
+</span><span id="__span-8-7">
+</span><span id="__span-8-8">
+</span><span id="__span-8-9"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-8-10"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">token</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">oauth2_scheme</span><span class="p">)):</span>
+</span><span id="__span-8-11">    <span class="k">return</span> <span class="p">{</span><span class="s2">"token"</span><span class="p">:</span> <span class="n">token</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+</details>
+<p>This dependency will provide a <code>str</code> that is assigned to the parameter <code>token</code> of the <em>path operation function</em>.</p>
+<p><strong>FastAPI</strong> will know that it can use this dependency to define a "security scheme" in the OpenAPI schema (and the automatic API docs).</p>
+<div class="admonition note">
+<p class="admonition-title">Technical Details</p>
+<p><strong>FastAPI</strong> will know that it can use the class <code>OAuth2PasswordBearer</code> (declared in a dependency) to define the security scheme in OpenAPI because it inherits from <code>fastapi.security.oauth2.OAuth2</code>, which in turn inherits from <code>fastapi.security.base.SecurityBase</code>.</p>
+<p>All the security utilities that integrate with OpenAPI (and the automatic API docs) inherit from <code>SecurityBase</code>, that's how <strong>FastAPI</strong> can know how to integrate them in OpenAPI.</p>
+</div>
+<h2 id="what-it-does">What it does</h2>
+<p>It will go and look in the request for that <code>Authorization</code> header, check if the value is <code>Bearer</code> plus some token, and will return the token as a <code>str</code>.</p>
+<p>If it doesn't see an <code>Authorization</code> header, or the value doesn't have a <code>Bearer</code> token, it will respond with a 401 status code error (<code>UNAUTHORIZED</code>) directly.</p>
+<p>You don't even have to check if the token exists to return an error. You can be sure that if your function is executed, it will have a <code>str</code> in that token.</p>
+<p>You can try it already in the interactive docs:</p>
+<p></p>
+<p>We are not verifying the validity of the token yet, but that's a start already.</p>
+<h2 id="recap">Recap</h2>
+<p>So, in just 3 or 4 extra lines, you already have some primitive form of security.</p>
+</article>

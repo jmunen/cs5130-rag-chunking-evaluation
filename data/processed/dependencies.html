@@ -1,0 +1,362 @@
+<article class="md-content__inner md-typeset">
+<h1 id="dependencies">Dependencies</h1>
+<p><strong>FastAPI</strong> has a very powerful but intuitive <strong><dfn title="also known as components, resources, providers, services, injectables">Dependency Injection</dfn></strong> system.</p>
+<p>It is designed to be very simple to use, and to make it very easy for any developer to integrate other components with <strong>FastAPI</strong>.</p>
+<h2 id="what-is-dependency-injection">What is "Dependency Injection"</h2>
+<p><strong>"Dependency Injection"</strong> means, in programming, that there is a way for your code (in this case, your <em>path operation functions</em>) to declare things that it requires to work and use: "dependencies".</p>
+<p>And then, that system (in this case <strong>FastAPI</strong>) will take care of doing whatever is needed to provide your code with those needed dependencies ("inject" the dependencies).</p>
+<p>This is very useful when you need to:</p>
+<ul>
+<li>Have shared logic (the same code logic again and again).</li>
+<li>Share database connections.</li>
+<li>Enforce security, authentication, role requirements, etc.</li>
+<li>And many other things...</li>
+</ul>
+<p>All these, while minimizing code repetition.</p>
+<h2 id="first-steps">First Steps</h2>
+<p>Let's see a very simple example. It will be so simple that it is not very useful, for now.</p>
+<p>But this way we can focus on how the <strong>Dependency Injection</strong> system works.</p>
+<h3 id="create-a-dependency-or-dependable">Create a dependency, or "dependable"</h3>
+<p>Let's first focus on the dependency.</p>
+<p>It is just a function that can take all the same parameters that a <em>path operation function</em> can take:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio"/><div class="tabbed-labels"><label for="__tabbed_1_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>
+</span><span id="__span-0-2">
+</span><span id="__span-0-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-0-4">
+</span><span id="__span-0-5"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-0-6">
+</span><span id="__span-0-7">
+</span><span id="__span-0-8"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">common_parameters</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+</span></span><span id="__span-0-9"><span class="hll">    <span class="k">return</span> <span class="p">{</span><span class="s2">"q"</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s2">"skip"</span><span class="p">:</span> <span class="n">skip</span><span class="p">,</span> <span class="s2">"limit"</span><span class="p">:</span> <span class="n">limit</span><span class="p">}</span>
+</span></span><span id="__span-0-10">
+</span><span id="__span-0-11">
+</span><span id="__span-0-12"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-0-13"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)]):</span>
+</span><span id="__span-0-14">    <span class="k">return</span> <span class="n">commons</span>
+</span><span id="__span-0-15">
+</span><span id="__span-0-16">
+</span><span id="__span-0-17"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users/"</span><span class="p">)</span>
+</span><span id="__span-0-18"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_users</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)]):</span>
+</span><span id="__span-0-19">    <span class="k">return</span> <span class="n">commons</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<details>
+<summary>🤓 Other versions and variants</summary>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio"/><div class="tabbed-labels"><label for="__tabbed_2_1">Python 3.10+ - non-Annotated</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Prefer to use the <code>Annotated</code> version if possible.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-1-2">
+</span><span id="__span-1-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-1-4">
+</span><span id="__span-1-5">
+</span><span id="__span-1-6"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">common_parameters</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+</span><span id="__span-1-7">    <span class="k">return</span> <span class="p">{</span><span class="s2">"q"</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s2">"skip"</span><span class="p">:</span> <span class="n">skip</span><span class="p">,</span> <span class="s2">"limit"</span><span class="p">:</span> <span class="n">limit</span><span class="p">}</span>
+</span><span id="__span-1-8">
+</span><span id="__span-1-9">
+</span><span id="__span-1-10"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-1-11"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)):</span>
+</span><span id="__span-1-12">    <span class="k">return</span> <span class="n">commons</span>
+</span><span id="__span-1-13">
+</span><span id="__span-1-14">
+</span><span id="__span-1-15"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users/"</span><span class="p">)</span>
+</span><span id="__span-1-16"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_users</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)):</span>
+</span><span id="__span-1-17">    <span class="k">return</span> <span class="n">commons</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+</details>
+<p>That's it.</p>
+<p><strong>2 lines</strong>.</p>
+<p>And it has the same shape and structure that all your <em>path operation functions</em> have.</p>
+<p>You can think of it as a <em>path operation function</em> without the "decorator" (without the <code>@app.get("/some-path")</code>).</p>
+<p>And it can return anything you want.</p>
+<p>In this case, this dependency expects:</p>
+<ul>
+<li>An optional query parameter <code>q</code> that is a <code>str</code>.</li>
+<li>An optional query parameter <code>skip</code> that is an <code>int</code>, and by default is <code>0</code>.</li>
+<li>An optional query parameter <code>limit</code> that is an <code>int</code>, and by default is <code>100</code>.</li>
+</ul>
+<p>And then it just returns a <code>dict</code> containing those values.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>FastAPI added support for <code>Annotated</code> (and started recommending it) in version 0.95.0.</p>
+<p>If you have an older version, you would get errors when trying to use <code>Annotated</code>.</p>
+<p>Make sure you <a href="../../deployment/versions/#upgrading-the-fastapi-versions">Upgrade the FastAPI version</a> to at least 0.95.1 before using <code>Annotated</code>.</p>
+</div>
+<h3 id="import-depends">Import <code>Depends</code></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio"/><div class="tabbed-labels"><label for="__tabbed_3_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>
+</span><span id="__span-2-2">
+</span><span id="__span-2-3"><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span></span><span id="__span-2-4">
+</span><span id="__span-2-5"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-2-6">
+</span><span id="__span-2-7">
+</span><span id="__span-2-8"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">common_parameters</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+</span><span id="__span-2-9">    <span class="k">return</span> <span class="p">{</span><span class="s2">"q"</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s2">"skip"</span><span class="p">:</span> <span class="n">skip</span><span class="p">,</span> <span class="s2">"limit"</span><span class="p">:</span> <span class="n">limit</span><span class="p">}</span>
+</span><span id="__span-2-10">
+</span><span id="__span-2-11">
+</span><span id="__span-2-12"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-2-13"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)]):</span>
+</span><span id="__span-2-14">    <span class="k">return</span> <span class="n">commons</span>
+</span><span id="__span-2-15">
+</span><span id="__span-2-16">
+</span><span id="__span-2-17"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users/"</span><span class="p">)</span>
+</span><span id="__span-2-18"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_users</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)]):</span>
+</span><span id="__span-2-19">    <span class="k">return</span> <span class="n">commons</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<details>
+<summary>🤓 Other versions and variants</summary>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio"/><div class="tabbed-labels"><label for="__tabbed_4_1">Python 3.10+ - non-Annotated</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Prefer to use the <code>Annotated</code> version if possible.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-3-2">
+</span><span id="__span-3-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-3-4">
+</span><span id="__span-3-5">
+</span><span id="__span-3-6"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">common_parameters</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+</span><span id="__span-3-7">    <span class="k">return</span> <span class="p">{</span><span class="s2">"q"</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s2">"skip"</span><span class="p">:</span> <span class="n">skip</span><span class="p">,</span> <span class="s2">"limit"</span><span class="p">:</span> <span class="n">limit</span><span class="p">}</span>
+</span><span id="__span-3-8">
+</span><span id="__span-3-9">
+</span><span id="__span-3-10"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-3-11"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)):</span>
+</span><span id="__span-3-12">    <span class="k">return</span> <span class="n">commons</span>
+</span><span id="__span-3-13">
+</span><span id="__span-3-14">
+</span><span id="__span-3-15"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users/"</span><span class="p">)</span>
+</span><span id="__span-3-16"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_users</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)):</span>
+</span><span id="__span-3-17">    <span class="k">return</span> <span class="n">commons</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+</details>
+<h3 id="declare-the-dependency-in-the-dependant">Declare the dependency, in the "dependant"</h3>
+<p>The same way you use <code>Body</code>, <code>Query</code>, etc. with your <em>path operation function</em> parameters, use <code>Depends</code> with a new parameter:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:1"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio"/><div class="tabbed-labels"><label for="__tabbed_5_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>
+</span><span id="__span-4-2">
+</span><span id="__span-4-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-4-4">
+</span><span id="__span-4-5"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-4-6">
+</span><span id="__span-4-7">
+</span><span id="__span-4-8"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">common_parameters</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+</span><span id="__span-4-9">    <span class="k">return</span> <span class="p">{</span><span class="s2">"q"</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s2">"skip"</span><span class="p">:</span> <span class="n">skip</span><span class="p">,</span> <span class="s2">"limit"</span><span class="p">:</span> <span class="n">limit</span><span class="p">}</span>
+</span><span id="__span-4-10">
+</span><span id="__span-4-11">
+</span><span id="__span-4-12"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-4-13"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)]):</span>
+</span></span><span id="__span-4-14">    <span class="k">return</span> <span class="n">commons</span>
+</span><span id="__span-4-15">
+</span><span id="__span-4-16">
+</span><span id="__span-4-17"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users/"</span><span class="p">)</span>
+</span><span id="__span-4-18"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_users</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)]):</span>
+</span></span><span id="__span-4-19">    <span class="k">return</span> <span class="n">commons</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<details>
+<summary>🤓 Other versions and variants</summary>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:1"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio"/><div class="tabbed-labels"><label for="__tabbed_6_1">Python 3.10+ - non-Annotated</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Prefer to use the <code>Annotated</code> version if possible.</p>
+</div>
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-5-2">
+</span><span id="__span-5-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-5-4">
+</span><span id="__span-5-5">
+</span><span id="__span-5-6"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">common_parameters</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+</span><span id="__span-5-7">    <span class="k">return</span> <span class="p">{</span><span class="s2">"q"</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s2">"skip"</span><span class="p">:</span> <span class="n">skip</span><span class="p">,</span> <span class="s2">"limit"</span><span class="p">:</span> <span class="n">limit</span><span class="p">}</span>
+</span><span id="__span-5-8">
+</span><span id="__span-5-9">
+</span><span id="__span-5-10"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-5-11"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)):</span>
+</span><span id="__span-5-12">    <span class="k">return</span> <span class="n">commons</span>
+</span><span id="__span-5-13">
+</span><span id="__span-5-14">
+</span><span id="__span-5-15"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users/"</span><span class="p">)</span>
+</span><span id="__span-5-16"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_users</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)):</span>
+</span><span id="__span-5-17">    <span class="k">return</span> <span class="n">commons</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+</details>
+<p>Although you use <code>Depends</code> in the parameters of your function the same way you use <code>Body</code>, <code>Query</code>, etc, <code>Depends</code> works a bit differently.</p>
+<p>You only give <code>Depends</code> a single parameter.</p>
+<p>This parameter must be something like a function.</p>
+<p>You <strong>don't call it</strong> directly (don't add the parenthesis at the end), you just pass it as a parameter to <code>Depends()</code>.</p>
+<p>And that function takes parameters in the same way that <em>path operation functions</em> do.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You'll see what other "things", apart from functions, can be used as dependencies in the next chapter.</p>
+</div>
+<p>Whenever a new request arrives, <strong>FastAPI</strong> will take care of:</p>
+<ul>
+<li>Calling your dependency ("dependable") function with the correct parameters.</li>
+<li>Get the result from your function.</li>
+<li>Assign that result to the parameter in your <em>path operation function</em>.</li>
+</ul>
+<pre class="mermaid"><code>graph TB
+
+common_parameters(["common_parameters"])
+read_items["/items/"]
+read_users["/users/"]
+
+common_parameters --&gt; read_items
+common_parameters --&gt; read_users</code></pre>
+<p>This way you write shared code once and <strong>FastAPI</strong> takes care of calling it for your <em>path operations</em>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Notice that you don't have to create a special class and pass it somewhere to <strong>FastAPI</strong> to "register" it or anything similar.</p>
+<p>You just pass it to <code>Depends</code> and <strong>FastAPI</strong> knows how to do the rest.</p>
+</div>
+<h2 id="share-annotated-dependencies">Share <code>Annotated</code> dependencies</h2>
+<p>In the examples above, you see that there's a tiny bit of <strong>code duplication</strong>.</p>
+<p>When you need to use the <code>common_parameters()</code> dependency, you have to write the whole parameter with the type annotation and <code>Depends()</code>:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><span class="n">commons</span><span class="p">:</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)]</span>
+</span></code></pre></div>
+<p>But because we are using <code>Annotated</code>, we can store that <code>Annotated</code> value in a variable and use it in multiple places:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="7:1"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio"/><div class="tabbed-labels"><label for="__tabbed_7_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Annotated</span>
+</span><span id="__span-7-2">
+</span><span id="__span-7-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">Depends</span><span class="p">,</span> <span class="n">FastAPI</span>
+</span><span id="__span-7-4">
+</span><span id="__span-7-5"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-7-6">
+</span><span id="__span-7-7">
+</span><span id="__span-7-8"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">common_parameters</span><span class="p">(</span><span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">):</span>
+</span><span id="__span-7-9">    <span class="k">return</span> <span class="p">{</span><span class="s2">"q"</span><span class="p">:</span> <span class="n">q</span><span class="p">,</span> <span class="s2">"skip"</span><span class="p">:</span> <span class="n">skip</span><span class="p">,</span> <span class="s2">"limit"</span><span class="p">:</span> <span class="n">limit</span><span class="p">}</span>
+</span><span id="__span-7-10">
+</span><span id="__span-7-11">
+</span><span id="__span-7-12"><span class="hll"><span class="n">CommonsDep</span> <span class="o">=</span> <span class="n">Annotated</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">Depends</span><span class="p">(</span><span class="n">common_parameters</span><span class="p">)]</span>
+</span></span><span id="__span-7-13">
+</span><span id="__span-7-14">
+</span><span id="__span-7-15"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-7-16"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_items</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="n">CommonsDep</span><span class="p">):</span>
+</span></span><span id="__span-7-17">    <span class="k">return</span> <span class="n">commons</span>
+</span><span id="__span-7-18">
+</span><span id="__span-7-19">
+</span><span id="__span-7-20"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users/"</span><span class="p">)</span>
+</span><span id="__span-7-21"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_users</span><span class="p">(</span><span class="n">commons</span><span class="p">:</span> <span class="n">CommonsDep</span><span class="p">):</span>
+</span></span><span id="__span-7-22">    <span class="k">return</span> <span class="n">commons</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>This is just standard Python, it's called a "type alias", it's actually not specific to <strong>FastAPI</strong>.</p>
+<p>But because <strong>FastAPI</strong> is based on the Python standards, including <code>Annotated</code>, you can use this trick in your code. 😎</p>
+</div>
+<p>The dependencies will keep working as expected, and the <strong>best part</strong> is that the <strong>type information will be preserved</strong>, which means that your editor will be able to keep providing you with <strong>autocompletion</strong>, <strong>inline errors</strong>, etc. The same for other tools like <code>mypy</code>.</p>
+<p>This will be especially useful when you use it in a <strong>large code base</strong> where you use <strong>the same dependencies</strong> over and over again in <strong>many <em>path operations</em></strong>.</p>
+<h2 id="to-async-or-not-to-async">To <code>async</code> or not to <code>async</code></h2>
+<p>As dependencies will also be called by <strong>FastAPI</strong> (the same as your <em>path operation functions</em>), the same rules apply while defining your functions.</p>
+<p>You can use <code>async def</code> or normal <code>def</code>.</p>
+<p>And you can declare dependencies with <code>async def</code> inside of normal <code>def</code> <em>path operation functions</em>, or <code>def</code> dependencies inside of <code>async def</code> <em>path operation functions</em>, etc.</p>
+<p>It doesn't matter. <strong>FastAPI</strong> will know what to do.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>If you don't know, check the <a href="../../async/#in-a-hurry">Async: <em>"In a hurry?"</em></a> section about <code>async</code> and <code>await</code> in the docs.</p>
+</div>
+<h2 id="integrated-with-openapi">Integrated with OpenAPI</h2>
+<p>All the request declarations, validations and requirements of your dependencies (and sub-dependencies) will be integrated in the same OpenAPI schema.</p>
+<p>So, the interactive docs will have all the information from these dependencies too:</p>
+<p></p>
+<h2 id="simple-usage">Simple usage</h2>
+<p>If you look at it, <em>path operation functions</em> are declared to be used whenever a <em>path</em> and <em>operation</em> matches, and then <strong>FastAPI</strong> takes care of calling the function with the correct parameters, extracting the data from the request.</p>
+<p>Actually, all (or most) of the web frameworks work in this same way.</p>
+<p>You never call those functions directly. They are called by your framework (in this case, <strong>FastAPI</strong>).</p>
+<p>With the Dependency Injection system, you can also tell <strong>FastAPI</strong> that your <em>path operation function</em> also "depends" on something else that should be executed before your <em>path operation function</em>, and <strong>FastAPI</strong> will take care of executing it and "injecting" the results.</p>
+<p>Other common terms for this same idea of "dependency injection" are:</p>
+<ul>
+<li>resources</li>
+<li>providers</li>
+<li>services</li>
+<li>injectables</li>
+<li>components</li>
+</ul>
+<h2 id="fastapi-plug-ins"><strong>FastAPI</strong> plug-ins</h2>
+<p>Integrations and "plug-ins" can be built using the <strong>Dependency Injection</strong> system. But in fact, there is actually <strong>no need to create "plug-ins"</strong>, as by using dependencies it's possible to declare an infinite number of integrations and interactions that become available to your <em>path operation functions</em>.</p>
+<p>And dependencies can be created in a very simple and intuitive way that allows you to just import the Python packages you need, and integrate them with your API functions in a couple of lines of code, <em>literally</em>.</p>
+<p>You will see examples of this in the next chapters, about relational and NoSQL databases, security, etc.</p>
+<h2 id="fastapi-compatibility"><strong>FastAPI</strong> compatibility</h2>
+<p>The simplicity of the dependency injection system makes <strong>FastAPI</strong> compatible with:</p>
+<ul>
+<li>all the relational databases</li>
+<li>NoSQL databases</li>
+<li>external packages</li>
+<li>external APIs</li>
+<li>authentication and authorization systems</li>
+<li>API usage monitoring systems</li>
+<li>response data injection systems</li>
+<li>etc.</li>
+</ul>
+<h2 id="simple-and-powerful">Simple and Powerful</h2>
+<p>Although the hierarchical dependency injection system is very simple to define and use, it's still very powerful.</p>
+<p>You can define dependencies that in turn can define dependencies themselves.</p>
+<p>In the end, a hierarchical tree of dependencies is built, and the <strong>Dependency Injection</strong> system takes care of solving all these dependencies for you (and their sub-dependencies) and providing (injecting) the results at each step.</p>
+<p>For example, let's say you have 4 API endpoints (<em>path operations</em>):</p>
+<ul>
+<li><code>/items/public/</code></li>
+<li><code>/items/private/</code></li>
+<li><code>/users/{user_id}/activate</code></li>
+<li><code>/items/pro/</code></li>
+</ul>
+<p>then you could add different permission requirements for each of them just with dependencies and sub-dependencies:</p>
+<pre class="mermaid"><code>graph TB
+
+current_user(["current_user"])
+active_user(["active_user"])
+admin_user(["admin_user"])
+paying_user(["paying_user"])
+
+public["/items/public/"]
+private["/items/private/"]
+activate_user["/users/{user_id}/activate"]
+pro_items["/items/pro/"]
+
+current_user --&gt; active_user
+active_user --&gt; admin_user
+active_user --&gt; paying_user
+
+current_user --&gt; public
+active_user --&gt; private
+admin_user --&gt; activate_user
+paying_user --&gt; pro_items</code></pre>
+<h2 id="integrated-with-openapi_1">Integrated with <strong>OpenAPI</strong></h2>
+<p>All these dependencies, while declaring their requirements, also add parameters, validations, etc. to your <em>path operations</em>.</p>
+<p><strong>FastAPI</strong> will take care of adding it all to the OpenAPI schema, so that it is shown in the interactive documentation systems.</p>
+</article>

@@ -1,0 +1,367 @@
+<article class="md-content__inner md-typeset">
+<h1 id="handling-errors">Handling Errors</h1>
+<p>There are many situations in which you need to report an error to a client that is using your API.</p>
+<p>This client could be a browser with a frontend, a code from someone else, an IoT device, etc.</p>
+<p>You could need to tell the client that:</p>
+<ul>
+<li>The client doesn't have enough privileges for that operation.</li>
+<li>The client doesn't have access to that resource.</li>
+<li>The item the client was trying to access doesn't exist.</li>
+<li>etc.</li>
+</ul>
+<p>In these cases, you would normally return an <strong>HTTP status code</strong> in the range of <strong>400</strong> (from 400 to 499).</p>
+<p>This is similar to the 200 HTTP status codes (from 200 to 299). Those "200" status codes mean that somehow there was a "success" in the request.</p>
+<p>The status codes in the 400 range mean that there was an error from the client.</p>
+<p>Remember all those <strong>"404 Not Found"</strong> errors (and jokes)?</p>
+<h2 id="use-httpexception">Use <code>HTTPException</code></h2>
+<p>To return HTTP responses with errors to the client you use <code>HTTPException</code>.</p>
+<h3 id="import-httpexception">Import <code>HTTPException</code></h3>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio"/><div class="tabbed-labels"><label for="__tabbed_1_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">HTTPException</span>
+</span></span><span id="__span-0-2">
+</span><span id="__span-0-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-0-4">
+</span><span id="__span-0-5"><span class="n">items</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"foo"</span><span class="p">:</span> <span class="s2">"The Foo Wrestlers"</span><span class="p">}</span>
+</span><span id="__span-0-6">
+</span><span id="__span-0-7">
+</span><span id="__span-0-8"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-0-9"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-0-10">    <span class="k">if</span> <span class="n">item_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+</span><span id="__span-0-11">        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">"Item not found"</span><span class="p">)</span>
+</span><span id="__span-0-12">    <span class="k">return</span> <span class="p">{</span><span class="s2">"item"</span><span class="p">:</span> <span class="n">items</span><span class="p">[</span><span class="n">item_id</span><span class="p">]}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<h3 id="raise-an-httpexception-in-your-code">Raise an <code>HTTPException</code> in your code</h3>
+<p><code>HTTPException</code> is a normal Python exception with additional data relevant for APIs.</p>
+<p>Because it's a Python exception, you don't <code>return</code> it, you <code>raise</code> it.</p>
+<p>This also means that if you are inside a utility function that you are calling inside of your <em>path operation function</em>, and you raise the <code>HTTPException</code> from inside of that utility function, it won't run the rest of the code in the <em>path operation function</em>, it will terminate that request right away and send the HTTP error from the <code>HTTPException</code> to the client.</p>
+<p>The benefit of raising an exception over returning a value will be more evident in the section about Dependencies and Security.</p>
+<p>In this example, when the client requests an item by an ID that doesn't exist, raise an exception with a status code of <code>404</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio"/><div class="tabbed-labels"><label for="__tabbed_2_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">HTTPException</span>
+</span><span id="__span-1-2">
+</span><span id="__span-1-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-1-4">
+</span><span id="__span-1-5"><span class="n">items</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"foo"</span><span class="p">:</span> <span class="s2">"The Foo Wrestlers"</span><span class="p">}</span>
+</span><span id="__span-1-6">
+</span><span id="__span-1-7">
+</span><span id="__span-1-8"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-1-9"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-1-10">    <span class="k">if</span> <span class="n">item_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+</span><span id="__span-1-11"><span class="hll">        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">"Item not found"</span><span class="p">)</span>
+</span></span><span id="__span-1-12">    <span class="k">return</span> <span class="p">{</span><span class="s2">"item"</span><span class="p">:</span> <span class="n">items</span><span class="p">[</span><span class="n">item_id</span><span class="p">]}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<h3 id="the-resulting-response">The resulting response</h3>
+<p>If the client requests <code>http://example.com/items/foo</code> (an <code>item_id</code> <code>"foo"</code>), that client will receive an HTTP status code of 200, and a JSON response of:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><span class="p">{</span>
+</span><span id="__span-2-2"><span class="w">  </span><span class="nt">"item"</span><span class="p">:</span><span class="w"> </span><span class="s2">"The Foo Wrestlers"</span>
+</span><span id="__span-2-3"><span class="p">}</span>
+</span></code></pre></div>
+<p>But if the client requests <code>http://example.com/items/bar</code> (a non-existent <code>item_id</code> <code>"bar"</code>), that client will receive an HTTP status code of 404 (the "not found" error), and a JSON response of:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><span class="p">{</span>
+</span><span id="__span-3-2"><span class="w">  </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Item not found"</span>
+</span><span id="__span-3-3"><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>When raising an <code>HTTPException</code>, you can pass any value that can be converted to JSON as the parameter <code>detail</code>, not only <code>str</code>.</p>
+<p>You could pass a <code>dict</code>, a <code>list</code>, etc.</p>
+<p>They are handled automatically by <strong>FastAPI</strong> and converted to JSON.</p>
+</div>
+<h2 id="add-custom-headers">Add custom headers</h2>
+<p>There are some situations where it's useful to be able to add custom headers to the HTTP error. For example, for some types of security.</p>
+<p>You probably won't need to use it directly in your code.</p>
+<p>But in case you needed it for an advanced scenario, you can add custom headers:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio"/><div class="tabbed-labels"><label for="__tabbed_3_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">HTTPException</span>
+</span><span id="__span-4-2">
+</span><span id="__span-4-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-4-4">
+</span><span id="__span-4-5"><span class="n">items</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"foo"</span><span class="p">:</span> <span class="s2">"The Foo Wrestlers"</span><span class="p">}</span>
+</span><span id="__span-4-6">
+</span><span id="__span-4-7">
+</span><span id="__span-4-8"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items-header/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-4-9"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item_header</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-4-10">    <span class="k">if</span> <span class="n">item_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">items</span><span class="p">:</span>
+</span><span id="__span-4-11">        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span>
+</span><span id="__span-4-12">            <span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span>
+</span><span id="__span-4-13">            <span class="n">detail</span><span class="o">=</span><span class="s2">"Item not found"</span><span class="p">,</span>
+</span><span id="__span-4-14"><span class="hll">            <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">"X-Error"</span><span class="p">:</span> <span class="s2">"There goes my error"</span><span class="p">},</span>
+</span></span><span id="__span-4-15">        <span class="p">)</span>
+</span><span id="__span-4-16">    <span class="k">return</span> <span class="p">{</span><span class="s2">"item"</span><span class="p">:</span> <span class="n">items</span><span class="p">[</span><span class="n">item_id</span><span class="p">]}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<h2 id="install-custom-exception-handlers">Install custom exception handlers</h2>
+<p>You can add custom exception handlers with <a href="https://starlette.dev/exceptions/">the same exception utilities from Starlette</a>.</p>
+<p>Let's say you have a custom exception <code>UnicornException</code> that you (or a library you use) might <code>raise</code>.</p>
+<p>And you want to handle this exception globally with FastAPI.</p>
+<p>You could add a custom exception handler with <code>@app.exception_handler()</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio"/><div class="tabbed-labels"><label for="__tabbed_4_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Request</span>
+</span><span id="__span-5-2"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.responses</span><span class="w"> </span><span class="kn">import</span> <span class="n">JSONResponse</span>
+</span><span id="__span-5-3">
+</span><span id="__span-5-4">
+</span><span id="__span-5-5"><span class="hll"><span class="k">class</span><span class="w"> </span><span class="nc">UnicornException</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+</span></span><span id="__span-5-6"><span class="hll">    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span></span><span id="__span-5-7"><span class="hll">        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+</span></span><span id="__span-5-8">
+</span><span id="__span-5-9">
+</span><span id="__span-5-10"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-5-11">
+</span><span id="__span-5-12">
+</span><span id="__span-5-13"><span class="hll"><span class="nd">@app</span><span class="o">.</span><span class="n">exception_handler</span><span class="p">(</span><span class="n">UnicornException</span><span class="p">)</span>
+</span></span><span id="__span-5-14"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">unicorn_exception_handler</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="n">UnicornException</span><span class="p">):</span>
+</span></span><span id="__span-5-15"><span class="hll">    <span class="k">return</span> <span class="n">JSONResponse</span><span class="p">(</span>
+</span></span><span id="__span-5-16"><span class="hll">        <span class="n">status_code</span><span class="o">=</span><span class="mi">418</span><span class="p">,</span>
+</span></span><span id="__span-5-17"><span class="hll">        <span class="n">content</span><span class="o">=</span><span class="p">{</span><span class="s2">"message"</span><span class="p">:</span> <span class="sa">f</span><span class="s2">"Oops! </span><span class="si">{</span><span class="n">exc</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2"> did something. There goes a rainbow..."</span><span class="p">},</span>
+</span></span><span id="__span-5-18"><span class="hll">    <span class="p">)</span>
+</span></span><span id="__span-5-19">
+</span><span id="__span-5-20">
+</span><span id="__span-5-21"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/unicorns/</span><span class="si">{name}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-5-22"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_unicorn</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-5-23">    <span class="k">if</span> <span class="n">name</span> <span class="o">==</span> <span class="s2">"yolo"</span><span class="p">:</span>
+</span><span id="__span-5-24"><span class="hll">        <span class="k">raise</span> <span class="n">UnicornException</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">)</span>
+</span></span><span id="__span-5-25">    <span class="k">return</span> <span class="p">{</span><span class="s2">"unicorn_name"</span><span class="p">:</span> <span class="n">name</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>Here, if you request <code>/unicorns/yolo</code>, the <em>path operation</em> will <code>raise</code> a <code>UnicornException</code>.</p>
+<p>But it will be handled by the <code>unicorn_exception_handler</code>.</p>
+<p>So, you will receive a clean error, with an HTTP status code of <code>418</code> and a JSON content of:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><span class="p">{</span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Oops! yolo did something. There goes a rainbow..."</span><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition note">
+<p class="admonition-title">Technical Details</p>
+<p>You could also use <code>from starlette.requests import Request</code> and <code>from starlette.responses import JSONResponse</code>.</p>
+<p><strong>FastAPI</strong> provides the same <code>starlette.responses</code> as <code>fastapi.responses</code> just as a convenience for you, the developer. But most of the available responses come directly from Starlette. The same with <code>Request</code>.</p>
+</div>
+<h2 id="override-the-default-exception-handlers">Override the default exception handlers</h2>
+<p><strong>FastAPI</strong> has some default exception handlers.</p>
+<p>These handlers are in charge of returning the default JSON responses when you <code>raise</code> an <code>HTTPException</code> and when the request has invalid data.</p>
+<p>You can override these exception handlers with your own.</p>
+<h3 id="override-request-validation-exceptions">Override request validation exceptions</h3>
+<p>When a request contains invalid data, <strong>FastAPI</strong> internally raises a <code>RequestValidationError</code>.</p>
+<p>And it also includes a default exception handler for it.</p>
+<p>To override it, import the <code>RequestValidationError</code> and use it with <code>@app.exception_handler(RequestValidationError)</code> to decorate the exception handler.</p>
+<p>The exception handler will receive a <code>Request</code> and the exception.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:1"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio"/><div class="tabbed-labels"><label for="__tabbed_5_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">HTTPException</span>
+</span><span id="__span-7-2"><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestValidationError</span>
+</span></span><span id="__span-7-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.responses</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlainTextResponse</span>
+</span><span id="__span-7-4"><span class="kn">from</span><span class="w"> </span><span class="nn">starlette.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPException</span> <span class="k">as</span> <span class="n">StarletteHTTPException</span>
+</span><span id="__span-7-5">
+</span><span id="__span-7-6"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-7-7">
+</span><span id="__span-7-8">
+</span><span id="__span-7-9"><span class="nd">@app</span><span class="o">.</span><span class="n">exception_handler</span><span class="p">(</span><span class="n">StarletteHTTPException</span><span class="p">)</span>
+</span><span id="__span-7-10"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">http_exception_handler</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">exc</span><span class="p">):</span>
+</span><span id="__span-7-11">    <span class="k">return</span> <span class="n">PlainTextResponse</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="o">.</span><span class="n">detail</span><span class="p">),</span> <span class="n">status_code</span><span class="o">=</span><span class="n">exc</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
+</span><span id="__span-7-12">
+</span><span id="__span-7-13">
+</span><span id="__span-7-14"><span class="hll"><span class="nd">@app</span><span class="o">.</span><span class="n">exception_handler</span><span class="p">(</span><span class="n">RequestValidationError</span><span class="p">)</span>
+</span></span><span id="__span-7-15"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">validation_exception_handler</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="n">RequestValidationError</span><span class="p">):</span>
+</span></span><span id="__span-7-16"><span class="hll">    <span class="n">message</span> <span class="o">=</span> <span class="s2">"Validation errors:"</span>
+</span></span><span id="__span-7-17"><span class="hll">    <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="n">exc</span><span class="o">.</span><span class="n">errors</span><span class="p">():</span>
+</span></span><span id="__span-7-18"><span class="hll">        <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Field: </span><span class="si">{</span><span class="n">error</span><span class="p">[</span><span class="s1">'loc'</span><span class="p">]</span><span class="si">}</span><span class="s2">, Error: </span><span class="si">{</span><span class="n">error</span><span class="p">[</span><span class="s1">'msg'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+</span></span><span id="__span-7-19"><span class="hll">    <span class="k">return</span> <span class="n">PlainTextResponse</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+</span></span><span id="__span-7-20">
+</span><span id="__span-7-21">
+</span><span id="__span-7-22"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-7-23"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+</span><span id="__span-7-24">    <span class="k">if</span> <span class="n">item_id</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+</span><span id="__span-7-25">        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">418</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">"Nope! I don't like 3."</span><span class="p">)</span>
+</span><span id="__span-7-26">    <span class="k">return</span> <span class="p">{</span><span class="s2">"item_id"</span><span class="p">:</span> <span class="n">item_id</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>Now, if you go to <code>/items/foo</code>, instead of getting the default JSON error with:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><span class="p">{</span>
+</span><span id="__span-8-2"><span class="w">    </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-8-3"><span class="w">        </span><span class="p">{</span>
+</span><span id="__span-8-4"><span class="w">            </span><span class="nt">"loc"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-8-5"><span class="w">                </span><span class="s2">"path"</span><span class="p">,</span>
+</span><span id="__span-8-6"><span class="w">                </span><span class="s2">"item_id"</span>
+</span><span id="__span-8-7"><span class="w">            </span><span class="p">],</span>
+</span><span id="__span-8-8"><span class="w">            </span><span class="nt">"msg"</span><span class="p">:</span><span class="w"> </span><span class="s2">"value is not a valid integer"</span><span class="p">,</span>
+</span><span id="__span-8-9"><span class="w">            </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"type_error.integer"</span>
+</span><span id="__span-8-10"><span class="w">        </span><span class="p">}</span>
+</span><span id="__span-8-11"><span class="w">    </span><span class="p">]</span>
+</span><span id="__span-8-12"><span class="p">}</span>
+</span></code></pre></div>
+<p>you will get a text version, with:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1">Validation errors:
+</span><span id="__span-9-2">Field: ('path', 'item_id'), Error: Input should be a valid integer, unable to parse string as an integer
+</span></code></pre></div>
+<h3 id="override-the-httpexception-error-handler">Override the <code>HTTPException</code> error handler</h3>
+<p>The same way, you can override the <code>HTTPException</code> handler.</p>
+<p>For example, you could want to return a plain text response instead of JSON for these errors:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:1"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio"/><div class="tabbed-labels"><label for="__tabbed_6_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">HTTPException</span>
+</span><span id="__span-10-2"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestValidationError</span>
+</span><span id="__span-10-3"><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.responses</span><span class="w"> </span><span class="kn">import</span> <span class="n">PlainTextResponse</span>
+</span></span><span id="__span-10-4"><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">starlette.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPException</span> <span class="k">as</span> <span class="n">StarletteHTTPException</span>
+</span></span><span id="__span-10-5">
+</span><span id="__span-10-6"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-10-7">
+</span><span id="__span-10-8">
+</span><span id="__span-10-9"><span class="hll"><span class="nd">@app</span><span class="o">.</span><span class="n">exception_handler</span><span class="p">(</span><span class="n">StarletteHTTPException</span><span class="p">)</span>
+</span></span><span id="__span-10-10"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">http_exception_handler</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">exc</span><span class="p">):</span>
+</span></span><span id="__span-10-11"><span class="hll">    <span class="k">return</span> <span class="n">PlainTextResponse</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">exc</span><span class="o">.</span><span class="n">detail</span><span class="p">),</span> <span class="n">status_code</span><span class="o">=</span><span class="n">exc</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
+</span></span><span id="__span-10-12">
+</span><span id="__span-10-13">
+</span><span id="__span-10-14"><span class="nd">@app</span><span class="o">.</span><span class="n">exception_handler</span><span class="p">(</span><span class="n">RequestValidationError</span><span class="p">)</span>
+</span><span id="__span-10-15"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">validation_exception_handler</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="n">RequestValidationError</span><span class="p">):</span>
+</span><span id="__span-10-16">    <span class="n">message</span> <span class="o">=</span> <span class="s2">"Validation errors:"</span>
+</span><span id="__span-10-17">    <span class="k">for</span> <span class="n">error</span> <span class="ow">in</span> <span class="n">exc</span><span class="o">.</span><span class="n">errors</span><span class="p">():</span>
+</span><span id="__span-10-18">        <span class="n">message</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"</span><span class="se">\n</span><span class="s2">Field: </span><span class="si">{</span><span class="n">error</span><span class="p">[</span><span class="s1">'loc'</span><span class="p">]</span><span class="si">}</span><span class="s2">, Error: </span><span class="si">{</span><span class="n">error</span><span class="p">[</span><span class="s1">'msg'</span><span class="p">]</span><span class="si">}</span><span class="s2">"</span>
+</span><span id="__span-10-19">    <span class="k">return</span> <span class="n">PlainTextResponse</span><span class="p">(</span><span class="n">message</span><span class="p">,</span> <span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">)</span>
+</span><span id="__span-10-20">
+</span><span id="__span-10-21">
+</span><span id="__span-10-22"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-10-23"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+</span><span id="__span-10-24">    <span class="k">if</span> <span class="n">item_id</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+</span><span id="__span-10-25"><span class="hll">        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">418</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">"Nope! I don't like 3."</span><span class="p">)</span>
+</span></span><span id="__span-10-26">    <span class="k">return</span> <span class="p">{</span><span class="s2">"item_id"</span><span class="p">:</span> <span class="n">item_id</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Technical Details</p>
+<p>You could also use <code>from starlette.responses import PlainTextResponse</code>.</p>
+<p><strong>FastAPI</strong> provides the same <code>starlette.responses</code> as <code>fastapi.responses</code> just as a convenience for you, the developer. But most of the available responses come directly from Starlette.</p>
+</div>
+<div class="admonition warning">
+<p class="admonition-title">Warning</p>
+<p>Have in mind that the <code>RequestValidationError</code> contains the information of the file name and line where the validation error happens so that you can show it in your logs with the relevant information if you want to.</p>
+<p>But that means that if you just convert it to a string and return that information directly, you could be leaking a bit of information about your system, that's why here the code extracts and shows each error independently.</p>
+</div>
+<h3 id="use-the-requestvalidationerror-body">Use the <code>RequestValidationError</code> body</h3>
+<p>The <code>RequestValidationError</code> contains the <code>body</code> it received with invalid data.</p>
+<p>You could use it while developing your app to log the body and debug it, return it to the user, etc.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="7:1"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio"/><div class="tabbed-labels"><label for="__tabbed_7_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-11-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">Request</span>
+</span><span id="__span-11-2"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.encoders</span><span class="w"> </span><span class="kn">import</span> <span class="n">jsonable_encoder</span>
+</span><span id="__span-11-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestValidationError</span>
+</span><span id="__span-11-4"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.responses</span><span class="w"> </span><span class="kn">import</span> <span class="n">JSONResponse</span>
+</span><span id="__span-11-5"><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span>
+</span><span id="__span-11-6">
+</span><span id="__span-11-7"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-11-8">
+</span><span id="__span-11-9">
+</span><span id="__span-11-10"><span class="nd">@app</span><span class="o">.</span><span class="n">exception_handler</span><span class="p">(</span><span class="n">RequestValidationError</span><span class="p">)</span>
+</span><span id="__span-11-11"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">validation_exception_handler</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">exc</span><span class="p">:</span> <span class="n">RequestValidationError</span><span class="p">):</span>
+</span><span id="__span-11-12">    <span class="k">return</span> <span class="n">JSONResponse</span><span class="p">(</span>
+</span><span id="__span-11-13">        <span class="n">status_code</span><span class="o">=</span><span class="mi">422</span><span class="p">,</span>
+</span><span id="__span-11-14"><span class="hll">        <span class="n">content</span><span class="o">=</span><span class="n">jsonable_encoder</span><span class="p">({</span><span class="s2">"detail"</span><span class="p">:</span> <span class="n">exc</span><span class="o">.</span><span class="n">errors</span><span class="p">(),</span> <span class="s2">"body"</span><span class="p">:</span> <span class="n">exc</span><span class="o">.</span><span class="n">body</span><span class="p">}),</span>
+</span></span><span id="__span-11-15">    <span class="p">)</span>
+</span><span id="__span-11-16">
+</span><span id="__span-11-17">
+</span><span id="__span-11-18"><span class="k">class</span><span class="w"> </span><span class="nc">Item</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+</span><span id="__span-11-19">    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
+</span><span id="__span-11-20">    <span class="n">size</span><span class="p">:</span> <span class="nb">int</span>
+</span><span id="__span-11-21">
+</span><span id="__span-11-22">
+</span><span id="__span-11-23"><span class="nd">@app</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-11-24"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">create_item</span><span class="p">(</span><span class="n">item</span><span class="p">:</span> <span class="n">Item</span><span class="p">):</span>
+</span><span id="__span-11-25">    <span class="k">return</span> <span class="n">item</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>Now try sending an invalid item like:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><span class="p">{</span>
+</span><span id="__span-12-2"><span class="w">  </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"towel"</span><span class="p">,</span>
+</span><span id="__span-12-3"><span class="w">  </span><span class="nt">"size"</span><span class="p">:</span><span class="w"> </span><span class="s2">"XL"</span>
+</span><span id="__span-12-4"><span class="p">}</span>
+</span></code></pre></div>
+<p>You will receive a response telling you that the data is invalid containing the received body:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><span class="p">{</span>
+</span><span id="__span-13-2"><span class="w">  </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-13-3"><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-13-4"><span class="w">      </span><span class="nt">"loc"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-13-5"><span class="w">        </span><span class="s2">"body"</span><span class="p">,</span>
+</span><span id="__span-13-6"><span class="w">        </span><span class="s2">"size"</span>
+</span><span id="__span-13-7"><span class="w">      </span><span class="p">],</span>
+</span><span id="__span-13-8"><span class="w">      </span><span class="nt">"msg"</span><span class="p">:</span><span class="w"> </span><span class="s2">"value is not a valid integer"</span><span class="p">,</span>
+</span><span id="__span-13-9"><span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"type_error.integer"</span>
+</span><span id="__span-13-10"><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-13-11"><span class="w">  </span><span class="p">],</span>
+</span><span id="__span-13-12"><span class="hll"><span class="w">  </span><span class="nt">"body"</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+</span></span><span id="__span-13-13"><span class="hll"><span class="w">    </span><span class="nt">"title"</span><span class="p">:</span><span class="w"> </span><span class="s2">"towel"</span><span class="p">,</span>
+</span></span><span id="__span-13-14"><span class="hll"><span class="w">    </span><span class="nt">"size"</span><span class="p">:</span><span class="w"> </span><span class="s2">"XL"</span>
+</span></span><span id="__span-13-15"><span class="hll"><span class="w">  </span><span class="p">}</span>
+</span></span><span id="__span-13-16"><span class="p">}</span>
+</span></code></pre></div>
+<h4 id="fastapis-httpexception-vs-starlettes-httpexception">FastAPI's <code>HTTPException</code> vs Starlette's <code>HTTPException</code></h4>
+<p><strong>FastAPI</strong> has its own <code>HTTPException</code>.</p>
+<p>And <strong>FastAPI</strong>'s <code>HTTPException</code> error class inherits from Starlette's <code>HTTPException</code> error class.</p>
+<p>The only difference is that <strong>FastAPI</strong>'s <code>HTTPException</code> accepts any JSON-able data for the <code>detail</code> field, while Starlette's <code>HTTPException</code> only accepts strings for it.</p>
+<p>So, you can keep raising <strong>FastAPI</strong>'s <code>HTTPException</code> as normally in your code.</p>
+<p>But when you register an exception handler, you should register it for Starlette's <code>HTTPException</code>.</p>
+<p>This way, if any part of Starlette's internal code, or a Starlette extension or plug-in, raises a Starlette <code>HTTPException</code>, your handler will be able to catch and handle it.</p>
+<p>In this example, to be able to have both <code>HTTPException</code>s in the same code, Starlette's exceptions is renamed to <code>StarletteHTTPException</code>:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-14-1"><span class="kn">from</span><span class="w"> </span><span class="nn">starlette.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPException</span> <span class="k">as</span> <span class="n">StarletteHTTPException</span>
+</span></code></pre></div>
+<h3 id="reuse-fastapis-exception-handlers">Reuse <strong>FastAPI</strong>'s exception handlers</h3>
+<p>If you want to use the exception along with the same default exception handlers from  <strong>FastAPI</strong>, you can import and reuse the default exception handlers from <code>fastapi.exception_handlers</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="8:1"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio"/><div class="tabbed-labels"><label for="__tabbed_8_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-15-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span><span class="p">,</span> <span class="n">HTTPException</span>
+</span><span id="__span-15-2"><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.exception_handlers</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span></span><span id="__span-15-3"><span class="hll">    <span class="n">http_exception_handler</span><span class="p">,</span>
+</span></span><span id="__span-15-4"><span class="hll">    <span class="n">request_validation_exception_handler</span><span class="p">,</span>
+</span></span><span id="__span-15-5"><span class="hll"><span class="p">)</span>
+</span></span><span id="__span-15-6"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">RequestValidationError</span>
+</span><span id="__span-15-7"><span class="kn">from</span><span class="w"> </span><span class="nn">starlette.exceptions</span><span class="w"> </span><span class="kn">import</span> <span class="n">HTTPException</span> <span class="k">as</span> <span class="n">StarletteHTTPException</span>
+</span><span id="__span-15-8">
+</span><span id="__span-15-9"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-15-10">
+</span><span id="__span-15-11">
+</span><span id="__span-15-12"><span class="nd">@app</span><span class="o">.</span><span class="n">exception_handler</span><span class="p">(</span><span class="n">StarletteHTTPException</span><span class="p">)</span>
+</span><span id="__span-15-13"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">custom_http_exception_handler</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">exc</span><span class="p">):</span>
+</span><span id="__span-15-14">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"OMG! An HTTP error!: </span><span class="si">{</span><span class="nb">repr</span><span class="p">(</span><span class="n">exc</span><span class="p">)</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-15-15"><span class="hll">    <span class="k">return</span> <span class="k">await</span> <span class="n">http_exception_handler</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+</span></span><span id="__span-15-16">
+</span><span id="__span-15-17">
+</span><span id="__span-15-18"><span class="nd">@app</span><span class="o">.</span><span class="n">exception_handler</span><span class="p">(</span><span class="n">RequestValidationError</span><span class="p">)</span>
+</span><span id="__span-15-19"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">validation_exception_handler</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">exc</span><span class="p">):</span>
+</span><span id="__span-15-20">    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"OMG! The client sent invalid data!: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-15-21"><span class="hll">    <span class="k">return</span> <span class="k">await</span> <span class="n">request_validation_exception_handler</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+</span></span><span id="__span-15-22">
+</span><span id="__span-15-23">
+</span><span id="__span-15-24"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-15-25"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+</span><span id="__span-15-26">    <span class="k">if</span> <span class="n">item_id</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+</span><span id="__span-15-27">        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">418</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">"Nope! I don't like 3."</span><span class="p">)</span>
+</span><span id="__span-15-28">    <span class="k">return</span> <span class="p">{</span><span class="s2">"item_id"</span><span class="p">:</span> <span class="n">item_id</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>In this example you are just printing the error with a very expressive message, but you get the idea. You can use the exception and then just reuse the default exception handlers.</p>
+</article>

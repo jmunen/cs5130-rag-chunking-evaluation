@@ -1,0 +1,228 @@
+<article class="md-content__inner md-typeset">
+<h1 id="query-parameters">Query Parameters</h1>
+<p>When you declare other function parameters that are not part of the path parameters, they are automatically interpreted as "query" parameters.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio"/><div class="tabbed-labels"><label for="__tabbed_1_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-0-2">
+</span><span id="__span-0-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-0-4">
+</span><span id="__span-0-5"><span class="n">fake_items_db</span> <span class="o">=</span> <span class="p">[{</span><span class="s2">"item_name"</span><span class="p">:</span> <span class="s2">"Foo"</span><span class="p">},</span> <span class="p">{</span><span class="s2">"item_name"</span><span class="p">:</span> <span class="s2">"Bar"</span><span class="p">},</span> <span class="p">{</span><span class="s2">"item_name"</span><span class="p">:</span> <span class="s2">"Baz"</span><span class="p">}]</span>
+</span><span id="__span-0-6">
+</span><span id="__span-0-7">
+</span><span id="__span-0-8"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/"</span><span class="p">)</span>
+</span><span id="__span-0-9"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">):</span>
+</span></span><span id="__span-0-10">    <span class="k">return</span> <span class="n">fake_items_db</span><span class="p">[</span><span class="n">skip</span> <span class="p">:</span> <span class="n">skip</span> <span class="o">+</span> <span class="n">limit</span><span class="p">]</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>The query is the set of key-value pairs that go after the <code>?</code> in a URL, separated by <code>&amp;</code> characters.</p>
+<p>For example, in the URL:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1">http://127.0.0.1:8000/items/?skip=0&amp;limit=10
+</span></code></pre></div>
+<p>...the query parameters are:</p>
+<ul>
+<li><code>skip</code>: with a value of <code>0</code></li>
+<li><code>limit</code>: with a value of <code>10</code></li>
+</ul>
+<p>As they are part of the URL, they are "naturally" strings.</p>
+<p>But when you declare them with Python types (in the example above, as <code>int</code>), they are converted to that type and validated against it.</p>
+<p>All the same processes that apply to path parameters also apply to query parameters:</p>
+<ul>
+<li>Editor support (obviously)</li>
+<li>Data <dfn title="converting the string that comes from an HTTP request into Python data">"parsing"</dfn></li>
+<li>Data validation</li>
+<li>Automatic documentation</li>
+</ul>
+<h2 id="defaults">Defaults</h2>
+<p>As query parameters are not a fixed part of a path, they can be optional and can have default values.</p>
+<p>In the example above they have default values of <code>skip=0</code> and <code>limit=10</code>.</p>
+<p>So, going to the URL:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-2-1">http://127.0.0.1:8000/items/
+</span></code></pre></div>
+<p>would be the same as going to:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1">http://127.0.0.1:8000/items/?skip=0&amp;limit=10
+</span></code></pre></div>
+<p>But if you go to, for example:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1">http://127.0.0.1:8000/items/?skip=20
+</span></code></pre></div>
+<p>The parameter values in your function will be:</p>
+<ul>
+<li><code>skip=20</code>: because you set it in the URL</li>
+<li><code>limit=10</code>: because that was the default value</li>
+</ul>
+<h2 id="optional-parameters">Optional parameters</h2>
+<p>The same way, you can declare optional query parameters, by setting their default to <code>None</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio"/><div class="tabbed-labels"><label for="__tabbed_2_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-5-2">
+</span><span id="__span-5-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-5-4">
+</span><span id="__span-5-5">
+</span><span id="__span-5-6"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-5-7"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">):</span>
+</span></span><span id="__span-5-8">    <span class="k">if</span> <span class="n">q</span><span class="p">:</span>
+</span><span id="__span-5-9">        <span class="k">return</span> <span class="p">{</span><span class="s2">"item_id"</span><span class="p">:</span> <span class="n">item_id</span><span class="p">,</span> <span class="s2">"q"</span><span class="p">:</span> <span class="n">q</span><span class="p">}</span>
+</span><span id="__span-5-10">    <span class="k">return</span> <span class="p">{</span><span class="s2">"item_id"</span><span class="p">:</span> <span class="n">item_id</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>In this case, the function parameter <code>q</code> will be optional, and will be <code>None</code> by default.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Also notice that <strong>FastAPI</strong> is smart enough to notice that the path parameter <code>item_id</code> is a path parameter and <code>q</code> is not, so, it's a query parameter.</p>
+</div>
+<h2 id="query-parameter-type-conversion">Query parameter type conversion</h2>
+<p>You can also declare <code>bool</code> types, and they will be converted:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio"/><div class="tabbed-labels"><label for="__tabbed_3_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-6-2">
+</span><span id="__span-6-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-6-4">
+</span><span id="__span-6-5">
+</span><span id="__span-6-6"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-6-7"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">short</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">):</span>
+</span></span><span id="__span-6-8">    <span class="n">item</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"item_id"</span><span class="p">:</span> <span class="n">item_id</span><span class="p">}</span>
+</span><span id="__span-6-9">    <span class="k">if</span> <span class="n">q</span><span class="p">:</span>
+</span><span id="__span-6-10">        <span class="n">item</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"q"</span><span class="p">:</span> <span class="n">q</span><span class="p">})</span>
+</span><span id="__span-6-11">    <span class="k">if</span> <span class="ow">not</span> <span class="n">short</span><span class="p">:</span>
+</span><span id="__span-6-12">        <span class="n">item</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+</span><span id="__span-6-13">            <span class="p">{</span><span class="s2">"description"</span><span class="p">:</span> <span class="s2">"This is an amazing item that has a long description"</span><span class="p">}</span>
+</span><span id="__span-6-14">        <span class="p">)</span>
+</span><span id="__span-6-15">    <span class="k">return</span> <span class="n">item</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>In this case, if you go to:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-7-1">http://127.0.0.1:8000/items/foo?short=1
+</span></code></pre></div>
+<p>or</p>
+<div class="highlight"><pre><span></span><code><span id="__span-8-1">http://127.0.0.1:8000/items/foo?short=True
+</span></code></pre></div>
+<p>or</p>
+<div class="highlight"><pre><span></span><code><span id="__span-9-1">http://127.0.0.1:8000/items/foo?short=true
+</span></code></pre></div>
+<p>or</p>
+<div class="highlight"><pre><span></span><code><span id="__span-10-1">http://127.0.0.1:8000/items/foo?short=on
+</span></code></pre></div>
+<p>or</p>
+<div class="highlight"><pre><span></span><code><span id="__span-11-1">http://127.0.0.1:8000/items/foo?short=yes
+</span></code></pre></div>
+<p>or any other case variation (uppercase, first letter in uppercase, etc), your function will see the parameter <code>short</code> with a <code>bool</code> value of <code>True</code>.</p>
+<p>Values such as <code>0</code>, <code>false</code>, <code>off</code>, and <code>no</code> (including case variations) are converted to <code>False</code>.</p>
+<p>If <code>short</code> is omitted, <strong>FastAPI</strong> uses its default value, which is <code>False</code> in this example.</p>
+<p>An empty value (<code>?short=</code>) or an unrecognized value (for example, <code>?short=maybe</code>) produces a <code>422</code> validation error.</p>
+<h2 id="multiple-path-and-query-parameters">Multiple path and query parameters</h2>
+<p>You can declare multiple path parameters and query parameters at the same time, <strong>FastAPI</strong> knows which is which.</p>
+<p>And you don't have to declare them in any specific order.</p>
+<p>They will be detected by name:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio"/><div class="tabbed-labels"><label for="__tabbed_4_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-12-2">
+</span><span id="__span-12-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-12-4">
+</span><span id="__span-12-5">
+</span><span id="__span-12-6"><span class="hll"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users/</span><span class="si">{user_id}</span><span class="s2">/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span></span><span id="__span-12-7"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_user_item</span><span class="p">(</span>
+</span><span id="__span-12-8"><span class="hll">    <span class="n">user_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">q</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="n">short</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+</span></span><span id="__span-12-9"><span class="p">):</span>
+</span><span id="__span-12-10">    <span class="n">item</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"item_id"</span><span class="p">:</span> <span class="n">item_id</span><span class="p">,</span> <span class="s2">"owner_id"</span><span class="p">:</span> <span class="n">user_id</span><span class="p">}</span>
+</span><span id="__span-12-11">    <span class="k">if</span> <span class="n">q</span><span class="p">:</span>
+</span><span id="__span-12-12">        <span class="n">item</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">"q"</span><span class="p">:</span> <span class="n">q</span><span class="p">})</span>
+</span><span id="__span-12-13">    <span class="k">if</span> <span class="ow">not</span> <span class="n">short</span><span class="p">:</span>
+</span><span id="__span-12-14">        <span class="n">item</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+</span><span id="__span-12-15">            <span class="p">{</span><span class="s2">"description"</span><span class="p">:</span> <span class="s2">"This is an amazing item that has a long description"</span><span class="p">}</span>
+</span><span id="__span-12-16">        <span class="p">)</span>
+</span><span id="__span-12-17">    <span class="k">return</span> <span class="n">item</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<h2 id="required-query-parameters">Required query parameters</h2>
+<p>When you declare a default value for non-path parameters (for now, we have only seen query parameters), then it is not required.</p>
+<p>If you don't want to add a specific value but just make it optional, set the default as <code>None</code>.</p>
+<p>But when you want to make a query parameter required, you can just not declare any default value:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:1"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio"/><div class="tabbed-labels"><label for="__tabbed_5_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-13-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-13-2">
+</span><span id="__span-13-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-13-4">
+</span><span id="__span-13-5">
+</span><span id="__span-13-6"><span class="hll"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span></span><span id="__span-13-7"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_user_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">needy</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span></span><span id="__span-13-8">    <span class="n">item</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"item_id"</span><span class="p">:</span> <span class="n">item_id</span><span class="p">,</span> <span class="s2">"needy"</span><span class="p">:</span> <span class="n">needy</span><span class="p">}</span>
+</span><span id="__span-13-9">    <span class="k">return</span> <span class="n">item</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>Here the query parameter <code>needy</code> is a required query parameter of type <code>str</code>.</p>
+<p>If you open in your browser a URL like:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-14-1">http://127.0.0.1:8000/items/foo-item
+</span></code></pre></div>
+<p>...without adding the required parameter <code>needy</code>, you will see an error like:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-15-1"><span class="p">{</span>
+</span><span id="__span-15-2"><span class="w">  </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-15-3"><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-15-4"><span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"missing"</span><span class="p">,</span>
+</span><span id="__span-15-5"><span class="w">      </span><span class="nt">"loc"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-15-6"><span class="w">        </span><span class="s2">"query"</span><span class="p">,</span>
+</span><span id="__span-15-7"><span class="w">        </span><span class="s2">"needy"</span>
+</span><span id="__span-15-8"><span class="w">      </span><span class="p">],</span>
+</span><span id="__span-15-9"><span class="w">      </span><span class="nt">"msg"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Field required"</span><span class="p">,</span>
+</span><span id="__span-15-10"><span class="w">      </span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="kc">null</span>
+</span><span id="__span-15-11"><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-15-12"><span class="w">  </span><span class="p">]</span>
+</span><span id="__span-15-13"><span class="p">}</span>
+</span></code></pre></div>
+<p>As <code>needy</code> is a required parameter, you would need to set it in the URL:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-16-1">http://127.0.0.1:8000/items/foo-item?needy=sooooneedy
+</span></code></pre></div>
+<p>...this would work:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-17-1"><span class="p">{</span>
+</span><span id="__span-17-2"><span class="w">    </span><span class="nt">"item_id"</span><span class="p">:</span><span class="w"> </span><span class="s2">"foo-item"</span><span class="p">,</span>
+</span><span id="__span-17-3"><span class="w">    </span><span class="nt">"needy"</span><span class="p">:</span><span class="w"> </span><span class="s2">"sooooneedy"</span>
+</span><span id="__span-17-4"><span class="p">}</span>
+</span></code></pre></div>
+<p>And of course, you can define some parameters as required, some as having a default value, and some entirely optional:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:1"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio"/><div class="tabbed-labels"><label for="__tabbed_6_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-18-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-18-2">
+</span><span id="__span-18-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-18-4">
+</span><span id="__span-18-5">
+</span><span id="__span-18-6"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-18-7"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_user_item</span><span class="p">(</span>
+</span><span id="__span-18-8"><span class="hll">    <span class="n">item_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">needy</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">skip</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">limit</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+</span></span><span id="__span-18-9"><span class="p">):</span>
+</span><span id="__span-18-10">    <span class="n">item</span> <span class="o">=</span> <span class="p">{</span><span class="s2">"item_id"</span><span class="p">:</span> <span class="n">item_id</span><span class="p">,</span> <span class="s2">"needy"</span><span class="p">:</span> <span class="n">needy</span><span class="p">,</span> <span class="s2">"skip"</span><span class="p">:</span> <span class="n">skip</span><span class="p">,</span> <span class="s2">"limit"</span><span class="p">:</span> <span class="n">limit</span><span class="p">}</span>
+</span><span id="__span-18-11">    <span class="k">return</span> <span class="n">item</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>In this case, there are 3 query parameters:</p>
+<ul>
+<li><code>needy</code>, a required <code>str</code>.</li>
+<li><code>skip</code>, an <code>int</code> with a default value of <code>0</code>.</li>
+<li><code>limit</code>, an optional <code>int</code>.</li>
+</ul>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You could also use <code>Enum</code>s the same way as with <a href="../path-params/#predefined-values">Path Parameters</a>.</p>
+</div>
+</article>
