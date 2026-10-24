@@ -1,0 +1,371 @@
+<article class="md-content__inner md-typeset">
+<h1 id="path-parameters">Path Parameters</h1>
+<p>You can declare path "parameters" or "variables" with the same syntax used by Python format strings:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:1"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio"/><div class="tabbed-labels"><label for="__tabbed_1_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-0-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-0-2">
+</span><span id="__span-0-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-0-4">
+</span><span id="__span-0-5">
+</span><span id="__span-0-6"><span class="hll"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span></span><span id="__span-0-7"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">):</span>
+</span></span><span id="__span-0-8">    <span class="k">return</span> <span class="p">{</span><span class="s2">"item_id"</span><span class="p">:</span> <span class="n">item_id</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>The value of the path parameter <code>item_id</code> will be passed to your function as the argument <code>item_id</code>.</p>
+<p>So, if you run this example and go to <a href="http://127.0.0.1:8000/items/foo">http://127.0.0.1:8000/items/foo</a>, you will see a response of:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-1-1"><span class="p">{</span><span class="nt">"item_id"</span><span class="p">:</span><span class="s2">"foo"</span><span class="p">}</span>
+</span></code></pre></div>
+<h2 id="path-parameters-with-types">Path parameters with types</h2>
+<p>You can declare the type of a path parameter in the function, using standard Python type annotations:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="2:1"><input checked="checked" id="__tabbed_2_1" name="__tabbed_2" type="radio"/><div class="tabbed-labels"><label for="__tabbed_2_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-2-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-2-2">
+</span><span id="__span-2-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-2-4">
+</span><span id="__span-2-5">
+</span><span id="__span-2-6"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/items/</span><span class="si">{item_id}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-2-7"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_item</span><span class="p">(</span><span class="n">item_id</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+</span></span><span id="__span-2-8">    <span class="k">return</span> <span class="p">{</span><span class="s2">"item_id"</span><span class="p">:</span> <span class="n">item_id</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>In this case, <code>item_id</code> is declared to be an <code>int</code>.</p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>This will give you editor support inside of your function, with error checks, completion, etc.</p>
+</div>
+<h2 id="data-conversion">Data <dfn title="also known as: serialization, parsing, marshalling">conversion</dfn></h2>
+<p>If you run this example and open your browser at <a href="http://127.0.0.1:8000/items/3">http://127.0.0.1:8000/items/3</a>, you will see a response of:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-3-1"><span class="p">{</span><span class="nt">"item_id"</span><span class="p">:</span><span class="mi">3</span><span class="p">}</span>
+</span></code></pre></div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Notice that the value your function received (and returned) is <code>3</code>, as a Python <code>int</code>, not a string <code>"3"</code>.</p>
+<p>So, with that type declaration, <strong>FastAPI</strong> gives you automatic request <dfn title="converting the string that comes from an HTTP request into Python data">"parsing"</dfn>.</p>
+</div>
+<h2 id="data-validation">Data validation</h2>
+<p>But if you go to the browser at <a href="http://127.0.0.1:8000/items/foo">http://127.0.0.1:8000/items/foo</a>, you will see a nice HTTP error of:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-4-1"><span class="p">{</span>
+</span><span id="__span-4-2"><span class="w">  </span><span class="nt">"detail"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-4-3"><span class="w">    </span><span class="p">{</span>
+</span><span id="__span-4-4"><span class="w">      </span><span class="nt">"type"</span><span class="p">:</span><span class="w"> </span><span class="s2">"int_parsing"</span><span class="p">,</span>
+</span><span id="__span-4-5"><span class="w">      </span><span class="nt">"loc"</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+</span><span id="__span-4-6"><span class="w">        </span><span class="s2">"path"</span><span class="p">,</span>
+</span><span id="__span-4-7"><span class="w">        </span><span class="s2">"item_id"</span>
+</span><span id="__span-4-8"><span class="w">      </span><span class="p">],</span>
+</span><span id="__span-4-9"><span class="w">      </span><span class="nt">"msg"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Input should be a valid integer, unable to parse string as an integer"</span><span class="p">,</span>
+</span><span id="__span-4-10"><span class="w">      </span><span class="nt">"input"</span><span class="p">:</span><span class="w"> </span><span class="s2">"foo"</span>
+</span><span id="__span-4-11"><span class="w">    </span><span class="p">}</span>
+</span><span id="__span-4-12"><span class="w">  </span><span class="p">]</span>
+</span><span id="__span-4-13"><span class="p">}</span>
+</span></code></pre></div>
+<p>because the path parameter <code>item_id</code> had a value of <code>"foo"</code>, which is not an <code>int</code>.</p>
+<p>The same error would appear if you provided a <code>float</code> instead of an <code>int</code>, as in: <a href="http://127.0.0.1:8000/items/4.2">http://127.0.0.1:8000/items/4.2</a></p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>So, with the same Python type declaration, <strong>FastAPI</strong> gives you data validation.</p>
+<p>Notice that the error also clearly states exactly the point where the validation didn't pass.</p>
+<p>This is incredibly helpful while developing and debugging code that interacts with your API.</p>
+</div>
+<h2 id="documentation">Documentation</h2>
+<p>And when you open your browser at <a href="http://127.0.0.1:8000/docs">http://127.0.0.1:8000/docs</a>, you will see an automatic, interactive, API documentation like:</p>
+<p></p>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>Again, just with that same Python type declaration, <strong>FastAPI</strong> gives you automatic, interactive documentation (integrating Swagger UI).</p>
+<p>Notice that the path parameter is declared to be an integer.</p>
+</div>
+<h2 id="standards-based-benefits-alternative-documentation">Standards-based benefits, alternative documentation</h2>
+<p>And because the generated schema is from the <a href="https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.1.0.md">OpenAPI</a> standard, there are many compatible tools.</p>
+<p>Because of this, <strong>FastAPI</strong> itself provides an alternative API documentation (using ReDoc), which you can access at <a href="http://127.0.0.1:8000/redoc">http://127.0.0.1:8000/redoc</a>:</p>
+<p></p>
+<p>The same way, there are many compatible tools. Including code generation tools for many languages.</p>
+<h2 id="pydantic">Pydantic</h2>
+<p>All the data validation is performed under the hood by <a href="https://pydantic.dev/docs/">Pydantic</a>, so you get all the benefits from it. And you know you are in good hands.</p>
+<p>You can use the same type declarations with <code>str</code>, <code>float</code>, <code>bool</code> and many other complex data types.</p>
+<p>Several of these are explored in the next chapters of the tutorial.</p>
+<h2 id="order-matters">Order matters</h2>
+<p>When creating <em>path operations</em>, you can find situations where you have a fixed path.</p>
+<p>Like <code>/users/me</code>, let's say that it's to get data about the current user.</p>
+<p>And then you can also have a path <code>/users/{user_id}</code> to get data about a specific user by some user ID.</p>
+<p>Because <em>path operations</em> are evaluated in order, you need to make sure that the path for <code>/users/me</code> is declared before the one for <code>/users/{user_id}</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="3:1"><input checked="checked" id="__tabbed_3_1" name="__tabbed_3" type="radio"/><div class="tabbed-labels"><label for="__tabbed_3_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-5-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-5-2">
+</span><span id="__span-5-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-5-4">
+</span><span id="__span-5-5">
+</span><span id="__span-5-6"><span class="hll"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users/me"</span><span class="p">)</span>
+</span></span><span id="__span-5-7"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_user_me</span><span class="p">():</span>
+</span><span id="__span-5-8">    <span class="k">return</span> <span class="p">{</span><span class="s2">"user_id"</span><span class="p">:</span> <span class="s2">"the current user"</span><span class="p">}</span>
+</span><span id="__span-5-9">
+</span><span id="__span-5-10">
+</span><span id="__span-5-11"><span class="hll"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users/</span><span class="si">{user_id}</span><span class="s2">"</span><span class="p">)</span>
+</span></span><span id="__span-5-12"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_user</span><span class="p">(</span><span class="n">user_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-5-13">    <span class="k">return</span> <span class="p">{</span><span class="s2">"user_id"</span><span class="p">:</span> <span class="n">user_id</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>Otherwise, the path for <code>/users/{user_id}</code> would match also for <code>/users/me</code>, "thinking" that it's receiving a parameter <code>user_id</code> with a value of <code>"me"</code>.</p>
+<p>Similarly, you cannot redefine a path operation:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="4:1"><input checked="checked" id="__tabbed_4_1" name="__tabbed_4" type="radio"/><div class="tabbed-labels"><label for="__tabbed_4_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-6-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-6-2">
+</span><span id="__span-6-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-6-4">
+</span><span id="__span-6-5">
+</span><span id="__span-6-6"><span class="hll"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users"</span><span class="p">)</span>
+</span></span><span id="__span-6-7"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_users</span><span class="p">():</span>
+</span><span id="__span-6-8">    <span class="k">return</span> <span class="p">[</span><span class="s2">"Rick"</span><span class="p">,</span> <span class="s2">"Morty"</span><span class="p">]</span>
+</span><span id="__span-6-9">
+</span><span id="__span-6-10">
+</span><span id="__span-6-11"><span class="hll"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/users"</span><span class="p">)</span>
+</span></span><span id="__span-6-12"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_users2</span><span class="p">():</span>
+</span><span id="__span-6-13">    <span class="k">return</span> <span class="p">[</span><span class="s2">"Bean"</span><span class="p">,</span> <span class="s2">"Elfo"</span><span class="p">]</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<p>The first one will always be used since the path matches first.</p>
+<h2 id="predefined-values">Predefined values</h2>
+<p>If you have a <em>path operation</em> that receives a <em>path parameter</em>, but you want the possible valid <em>path parameter</em> values to be predefined, you can use a standard Python <abbr title="Enumeration"><code>Enum</code></abbr>.</p>
+<h3 id="create-an-enum-class">Create an <code>Enum</code> class</h3>
+<p>Import <code>Enum</code> and create a sub-class that inherits from <code>str</code> and from <code>Enum</code>.</p>
+<p>By inheriting from <code>str</code> the API docs will be able to know that the values must be of type <code>string</code> and will be able to render correctly.</p>
+<p>Then create class attributes with fixed values, which will be the available valid values:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="5:1"><input checked="checked" id="__tabbed_5_1" name="__tabbed_5" type="radio"/><div class="tabbed-labels"><label for="__tabbed_5_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-7-1"><span class="hll"><span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+</span></span><span id="__span-7-2">
+</span><span id="__span-7-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-7-4">
+</span><span id="__span-7-5">
+</span><span id="__span-7-6"><span class="hll"><span class="k">class</span><span class="w"> </span><span class="nc">ModelName</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+</span></span><span id="__span-7-7"><span class="hll">    <span class="n">alexnet</span> <span class="o">=</span> <span class="s2">"alexnet"</span>
+</span></span><span id="__span-7-8"><span class="hll">    <span class="n">resnet</span> <span class="o">=</span> <span class="s2">"resnet"</span>
+</span></span><span id="__span-7-9"><span class="hll">    <span class="n">lenet</span> <span class="o">=</span> <span class="s2">"lenet"</span>
+</span></span><span id="__span-7-10">
+</span><span id="__span-7-11">
+</span><span id="__span-7-12"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-7-13">
+</span><span id="__span-7-14">
+</span><span id="__span-7-15"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/models/</span><span class="si">{model_name}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-7-16"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_model</span><span class="p">(</span><span class="n">model_name</span><span class="p">:</span> <span class="n">ModelName</span><span class="p">):</span>
+</span><span id="__span-7-17">    <span class="k">if</span> <span class="n">model_name</span> <span class="ow">is</span> <span class="n">ModelName</span><span class="o">.</span><span class="n">alexnet</span><span class="p">:</span>
+</span><span id="__span-7-18">        <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Deep Learning FTW!"</span><span class="p">}</span>
+</span><span id="__span-7-19">
+</span><span id="__span-7-20">    <span class="k">if</span> <span class="n">model_name</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">"lenet"</span><span class="p">:</span>
+</span><span id="__span-7-21">        <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"LeCNN all the images"</span><span class="p">}</span>
+</span><span id="__span-7-22">
+</span><span id="__span-7-23">    <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Have some residuals"</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>If you are wondering, "AlexNet", "ResNet", and "LeNet" are just names of Machine Learning <dfn title="Technically, Deep Learning model architectures">models</dfn>.</p>
+</div>
+<h3 id="declare-a-path-parameter">Declare a <em>path parameter</em></h3>
+<p>Then create a <em>path parameter</em> with a type annotation using the enum class you created (<code>ModelName</code>):</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="6:1"><input checked="checked" id="__tabbed_6_1" name="__tabbed_6" type="radio"/><div class="tabbed-labels"><label for="__tabbed_6_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-8-1"><span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+</span><span id="__span-8-2">
+</span><span id="__span-8-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-8-4">
+</span><span id="__span-8-5">
+</span><span id="__span-8-6"><span class="k">class</span><span class="w"> </span><span class="nc">ModelName</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+</span><span id="__span-8-7">    <span class="n">alexnet</span> <span class="o">=</span> <span class="s2">"alexnet"</span>
+</span><span id="__span-8-8">    <span class="n">resnet</span> <span class="o">=</span> <span class="s2">"resnet"</span>
+</span><span id="__span-8-9">    <span class="n">lenet</span> <span class="o">=</span> <span class="s2">"lenet"</span>
+</span><span id="__span-8-10">
+</span><span id="__span-8-11">
+</span><span id="__span-8-12"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-8-13">
+</span><span id="__span-8-14">
+</span><span id="__span-8-15"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/models/</span><span class="si">{model_name}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-8-16"><span class="hll"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_model</span><span class="p">(</span><span class="n">model_name</span><span class="p">:</span> <span class="n">ModelName</span><span class="p">):</span>
+</span></span><span id="__span-8-17">    <span class="k">if</span> <span class="n">model_name</span> <span class="ow">is</span> <span class="n">ModelName</span><span class="o">.</span><span class="n">alexnet</span><span class="p">:</span>
+</span><span id="__span-8-18">        <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Deep Learning FTW!"</span><span class="p">}</span>
+</span><span id="__span-8-19">
+</span><span id="__span-8-20">    <span class="k">if</span> <span class="n">model_name</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">"lenet"</span><span class="p">:</span>
+</span><span id="__span-8-21">        <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"LeCNN all the images"</span><span class="p">}</span>
+</span><span id="__span-8-22">
+</span><span id="__span-8-23">    <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Have some residuals"</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<h3 id="check-the-docs">Check the docs</h3>
+<p>Because the available values for the <em>path parameter</em> are predefined, the interactive docs can show them nicely:</p>
+<p></p>
+<h3 id="working-with-python-enumerations">Working with Python <em>enumerations</em></h3>
+<p>The value of the <em>path parameter</em> will be an <em>enumeration member</em>.</p>
+<h4 id="compare-enumeration-members">Compare <em>enumeration members</em></h4>
+<p>You can compare it with the <em>enumeration member</em> in your created enum <code>ModelName</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="7:1"><input checked="checked" id="__tabbed_7_1" name="__tabbed_7" type="radio"/><div class="tabbed-labels"><label for="__tabbed_7_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-9-1"><span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+</span><span id="__span-9-2">
+</span><span id="__span-9-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-9-4">
+</span><span id="__span-9-5">
+</span><span id="__span-9-6"><span class="k">class</span><span class="w"> </span><span class="nc">ModelName</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+</span><span id="__span-9-7">    <span class="n">alexnet</span> <span class="o">=</span> <span class="s2">"alexnet"</span>
+</span><span id="__span-9-8">    <span class="n">resnet</span> <span class="o">=</span> <span class="s2">"resnet"</span>
+</span><span id="__span-9-9">    <span class="n">lenet</span> <span class="o">=</span> <span class="s2">"lenet"</span>
+</span><span id="__span-9-10">
+</span><span id="__span-9-11">
+</span><span id="__span-9-12"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-9-13">
+</span><span id="__span-9-14">
+</span><span id="__span-9-15"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/models/</span><span class="si">{model_name}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-9-16"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_model</span><span class="p">(</span><span class="n">model_name</span><span class="p">:</span> <span class="n">ModelName</span><span class="p">):</span>
+</span><span id="__span-9-17"><span class="hll">    <span class="k">if</span> <span class="n">model_name</span> <span class="ow">is</span> <span class="n">ModelName</span><span class="o">.</span><span class="n">alexnet</span><span class="p">:</span>
+</span></span><span id="__span-9-18">        <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Deep Learning FTW!"</span><span class="p">}</span>
+</span><span id="__span-9-19">
+</span><span id="__span-9-20">    <span class="k">if</span> <span class="n">model_name</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">"lenet"</span><span class="p">:</span>
+</span><span id="__span-9-21">        <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"LeCNN all the images"</span><span class="p">}</span>
+</span><span id="__span-9-22">
+</span><span id="__span-9-23">    <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Have some residuals"</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<h4 id="get-the-enumeration-value">Get the <em>enumeration value</em></h4>
+<p>You can get the actual value (a <code>str</code> in this case) using <code>model_name.value</code>, or in general, <code>your_enum_member.value</code>:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="8:1"><input checked="checked" id="__tabbed_8_1" name="__tabbed_8" type="radio"/><div class="tabbed-labels"><label for="__tabbed_8_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-10-1"><span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+</span><span id="__span-10-2">
+</span><span id="__span-10-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-10-4">
+</span><span id="__span-10-5">
+</span><span id="__span-10-6"><span class="k">class</span><span class="w"> </span><span class="nc">ModelName</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+</span><span id="__span-10-7">    <span class="n">alexnet</span> <span class="o">=</span> <span class="s2">"alexnet"</span>
+</span><span id="__span-10-8">    <span class="n">resnet</span> <span class="o">=</span> <span class="s2">"resnet"</span>
+</span><span id="__span-10-9">    <span class="n">lenet</span> <span class="o">=</span> <span class="s2">"lenet"</span>
+</span><span id="__span-10-10">
+</span><span id="__span-10-11">
+</span><span id="__span-10-12"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-10-13">
+</span><span id="__span-10-14">
+</span><span id="__span-10-15"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/models/</span><span class="si">{model_name}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-10-16"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_model</span><span class="p">(</span><span class="n">model_name</span><span class="p">:</span> <span class="n">ModelName</span><span class="p">):</span>
+</span><span id="__span-10-17">    <span class="k">if</span> <span class="n">model_name</span> <span class="ow">is</span> <span class="n">ModelName</span><span class="o">.</span><span class="n">alexnet</span><span class="p">:</span>
+</span><span id="__span-10-18">        <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Deep Learning FTW!"</span><span class="p">}</span>
+</span><span id="__span-10-19">
+</span><span id="__span-10-20"><span class="hll">    <span class="k">if</span> <span class="n">model_name</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">"lenet"</span><span class="p">:</span>
+</span></span><span id="__span-10-21">        <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"LeCNN all the images"</span><span class="p">}</span>
+</span><span id="__span-10-22">
+</span><span id="__span-10-23">    <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Have some residuals"</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You could also access the value <code>"lenet"</code> with <code>ModelName.lenet.value</code>.</p>
+</div>
+<h4 id="return-enumeration-members">Return <em>enumeration members</em></h4>
+<p>You can return <em>enum members</em> from your <em>path operation</em>, even nested in a JSON body (e.g. a <code>dict</code>).</p>
+<p>They will be converted to their corresponding values (strings in this case) before returning them to the client:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="9:1"><input checked="checked" id="__tabbed_9_1" name="__tabbed_9" type="radio"/><div class="tabbed-labels"><label for="__tabbed_9_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-11-1"><span class="kn">from</span><span class="w"> </span><span class="nn">enum</span><span class="w"> </span><span class="kn">import</span> <span class="n">Enum</span>
+</span><span id="__span-11-2">
+</span><span id="__span-11-3"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-11-4">
+</span><span id="__span-11-5">
+</span><span id="__span-11-6"><span class="k">class</span><span class="w"> </span><span class="nc">ModelName</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="n">Enum</span><span class="p">):</span>
+</span><span id="__span-11-7">    <span class="n">alexnet</span> <span class="o">=</span> <span class="s2">"alexnet"</span>
+</span><span id="__span-11-8">    <span class="n">resnet</span> <span class="o">=</span> <span class="s2">"resnet"</span>
+</span><span id="__span-11-9">    <span class="n">lenet</span> <span class="o">=</span> <span class="s2">"lenet"</span>
+</span><span id="__span-11-10">
+</span><span id="__span-11-11">
+</span><span id="__span-11-12"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-11-13">
+</span><span id="__span-11-14">
+</span><span id="__span-11-15"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/models/</span><span class="si">{model_name}</span><span class="s2">"</span><span class="p">)</span>
+</span><span id="__span-11-16"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">get_model</span><span class="p">(</span><span class="n">model_name</span><span class="p">:</span> <span class="n">ModelName</span><span class="p">):</span>
+</span><span id="__span-11-17">    <span class="k">if</span> <span class="n">model_name</span> <span class="ow">is</span> <span class="n">ModelName</span><span class="o">.</span><span class="n">alexnet</span><span class="p">:</span>
+</span><span id="__span-11-18"><span class="hll">        <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Deep Learning FTW!"</span><span class="p">}</span>
+</span></span><span id="__span-11-19">
+</span><span id="__span-11-20">    <span class="k">if</span> <span class="n">model_name</span><span class="o">.</span><span class="n">value</span> <span class="o">==</span> <span class="s2">"lenet"</span><span class="p">:</span>
+</span><span id="__span-11-21"><span class="hll">        <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"LeCNN all the images"</span><span class="p">}</span>
+</span></span><span id="__span-11-22">
+</span><span id="__span-11-23"><span class="hll">    <span class="k">return</span> <span class="p">{</span><span class="s2">"model_name"</span><span class="p">:</span> <span class="n">model_name</span><span class="p">,</span> <span class="s2">"message"</span><span class="p">:</span> <span class="s2">"Have some residuals"</span><span class="p">}</span>
+</span></span></code></pre></div>
+</div>
+</div>
+</div>
+<p>In your client you will get a JSON response like:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-12-1"><span class="p">{</span>
+</span><span id="__span-12-2"><span class="w">  </span><span class="nt">"model_name"</span><span class="p">:</span><span class="w"> </span><span class="s2">"alexnet"</span><span class="p">,</span>
+</span><span id="__span-12-3"><span class="w">  </span><span class="nt">"message"</span><span class="p">:</span><span class="w"> </span><span class="s2">"Deep Learning FTW!"</span>
+</span><span id="__span-12-4"><span class="p">}</span>
+</span></code></pre></div>
+<h2 id="path-parameters-containing-paths">Path parameters containing paths</h2>
+<p>Let's say you have a <em>path operation</em> with a path <code>/files/{file_path}</code>.</p>
+<p>But you need <code>file_path</code> itself to contain a <em>path</em>, like <code>home/johndoe/myfile.txt</code>.</p>
+<p>So, the URL for that file would be something like: <code>/files/home/johndoe/myfile.txt</code>.</p>
+<h3 id="openapi-support">OpenAPI support</h3>
+<p>OpenAPI doesn't support a way to declare a <em>path parameter</em> to contain a <em>path</em> inside, as that could lead to scenarios that are difficult to test and define.</p>
+<p>Nevertheless, you can still do it in <strong>FastAPI</strong>, using one of the internal tools from Starlette.</p>
+<p>And the docs would still work, although not adding any documentation telling that the parameter should contain a path.</p>
+<h3 id="path-convertor">Path convertor</h3>
+<p>Using an option directly from Starlette you can declare a <em>path parameter</em> containing a <em>path</em> using a URL like:</p>
+<div class="highlight"><pre><span></span><code><span id="__span-13-1">/files/{file_path:path}
+</span></code></pre></div>
+<p>In this case, the name of the parameter is <code>file_path</code>, and the last part, <code>:path</code>, tells it that the parameter should match any <em>path</em>.</p>
+<p>So, you can use it with:</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="10:1"><input checked="checked" id="__tabbed_10_1" name="__tabbed_10" type="radio"/><div class="tabbed-labels"><label for="__tabbed_10_1">Python 3.10+</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
+<div class="highlight"><pre><span></span><code><span id="__span-14-1"><span class="kn">from</span><span class="w"> </span><span class="nn">fastapi</span><span class="w"> </span><span class="kn">import</span> <span class="n">FastAPI</span>
+</span><span id="__span-14-2">
+</span><span id="__span-14-3"><span class="n">app</span> <span class="o">=</span> <span class="n">FastAPI</span><span class="p">()</span>
+</span><span id="__span-14-4">
+</span><span id="__span-14-5">
+</span><span id="__span-14-6"><span class="hll"><span class="nd">@app</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"/files/{file_path:path}"</span><span class="p">)</span>
+</span></span><span id="__span-14-7"><span class="k">async</span> <span class="k">def</span><span class="w"> </span><span class="nf">read_file</span><span class="p">(</span><span class="n">file_path</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+</span><span id="__span-14-8">    <span class="k">return</span> <span class="p">{</span><span class="s2">"file_path"</span><span class="p">:</span> <span class="n">file_path</span><span class="p">}</span>
+</span></code></pre></div>
+</div>
+</div>
+</div>
+<div class="admonition tip">
+<p class="admonition-title">Tip</p>
+<p>You might need the parameter to contain <code>/home/johndoe/myfile.txt</code>, with a leading slash (<code>/</code>).</p>
+<p>In that case, the URL would be: <code>/files//home/johndoe/myfile.txt</code>, with a double slash (<code>//</code>) between <code>files</code> and <code>home</code>.</p>
+</div>
+<h2 id="recap">Recap</h2>
+<p>With <strong>FastAPI</strong>, by using short, intuitive and standard Python type declarations, you get:</p>
+<ul>
+<li>Editor support: error checks, autocompletion, etc.</li>
+<li>Data "<dfn title="converting the string that comes from an HTTP request into Python data">parsing</dfn>"</li>
+<li>Data validation</li>
+<li>API annotation and automatic documentation</li>
+</ul>
+<p>And you only have to declare them once.</p>
+<p>That's probably the main visible advantage of <strong>FastAPI</strong> compared to alternative frameworks (apart from the raw performance).</p>
+</article>
