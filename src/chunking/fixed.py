@@ -1,5 +1,9 @@
+import json
+from pathlib import Path
+
 from bs4 import BeautifulSoup
 from transformers import AutoTokenizer
+
 
 MODEL_NAME = "BAAI/bge-small-en-v1.5"
 
@@ -50,23 +54,30 @@ def chunk_text(text, chunk_size=256, overlap=32):
 
 
 if __name__ == "__main__":
-    from pathlib import Path
+    processed_dir = Path("data/processed")
+    output_path = Path("data/chunks/fixed_chunks.jsonl")
 
-    input_path = Path("data/processed/path_params.html")
-    html = input_path.read_text(encoding="utf-8")
+    all_chunks = []
 
-    text = extract_text_from_html(html)
+    for input_path in processed_dir.glob("*.html"):
+        html = input_path.read_text(encoding="utf-8")
+        text = extract_text_from_html(html)
 
-    chunks = chunk_text(
-        text,
-        chunk_size=256,
-        overlap=32
-    )
+        chunks = chunk_text(
+            text,
+            chunk_size=256,
+            overlap=32
+        )
 
-    print(f"Created {len(chunks)} chunks")
+        for chunk_id, chunk in enumerate(chunks):
+            chunk["source"] = input_path.name
+            chunk["chunk_id"] = f"{input_path.stem}_{chunk_id}"
+            all_chunks.append(chunk)
 
-    for i, chunk in enumerate(chunks[:3], start=1):
-        print(f"\nChunk {i}")
-        print(f"Token range: {chunk['start_token']}-{chunk['end_token']}")
-        print(f"Character range: {chunk['start']}-{chunk['end']}")
-        print(chunk["text"][:300])
+        print(f"{input_path.name}: {len(chunks)} chunks")
+
+    with output_path.open("w", encoding="utf-8") as f:
+        for chunk in all_chunks:
+            f.write(json.dumps(chunk) + "\n")
+
+    print(f"\nSaved {len(all_chunks)} chunks to {output_path}")
